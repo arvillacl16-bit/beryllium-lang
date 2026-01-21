@@ -3,3 +3,5 @@
 *.o
 *.a
 *.sh
+objfiles
+compile_commands.json
