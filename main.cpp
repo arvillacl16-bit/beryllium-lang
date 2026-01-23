@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
   };
   if (argc == 1)
     beryl::throw_arg_read_error(
-      "Can choose beryl build, beryl create, or beryl remove");
+      "Can choose beryl build, beryl create, or beryl destroy");
   if (is_mode("create")) {
     if (directory_exists("__bervenv__"))
       beryl::throw_arg_read_error("__bervenv__ folder already exists. Please "
@@ -49,9 +49,10 @@ int main(int argc, char* argv[]) {
       else if (arg.rfind("-includes=", 0) == 0) includes = beryl::get_includes(arg.substr(10));
       else if (arg.rfind("-out=", 0) == 0)
         exec = arg.substr(6);
-      else if (arg.rfind("-std=be", 0) == 0) {
-        std::string verstr = arg.substr(8);
-        ver = std::stoi(verstr);
+      else if (arg.rfind("-std=", 0) == 0) {
+        std::string verstr = arg.substr(5);
+        if (verstr == "be1") ver = 1;
+        else beryl::throw_arg_read_error("Unknown version: " + verstr);
       } else beryl::throw_arg_read_warning("Unknown compiler argument: " + arg);
     }
 
@@ -61,9 +62,11 @@ int main(int argc, char* argv[]) {
 
     llvm::LLVMContext context;
 
-    for (const std::filesystem::path& path : paths_to_by_file) {
-      llvm::Module mod("BerylliumModule", context);
-      llvm::IRBuilder<> builder(context);
+    if (ver == 1) {
+      for (const std::filesystem::path& path : paths_to_by_file) {
+        llvm::Module mod("BerylliumModule", context);
+        llvm::IRBuilder<> builder(context);
+      }
     }
   } else beryl::throw_arg_read_error("Invalid option");
   return 0;
