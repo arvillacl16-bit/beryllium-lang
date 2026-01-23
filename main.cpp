@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
   if (is_mode("create")) {
     if (directory_exists("__bervenv__"))
       beryl::throw_arg_read_error("__bervenv__ folder already exists. Please "
-        "choose a different name.");
+        "delete the existing venv or use a different directory.");
     fs::create_directory("__bervenv__");
     fs::create_directory("__bervenv__/syspacks");
     fs::create_directory("__bervenv__/build");
