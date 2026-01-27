@@ -1,5 +1,6 @@
 #include "utils/error.hpp"
 #include "utils/parse_json_params.hpp"
+#include "utils/arena_allocator.hpp"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -194,231 +195,281 @@ const std::unordered_map<std::string_view, decltype(Token::VAR)> keywords = {
 
 namespace fs = std::filesystem;
 
-int main(int argc, char* argv[]) {
-  std::cout << std::boolalpha;
-  auto directory_exists = [](const fs::path& path) {
-    return fs::exists(path) && fs::is_directory(path);
-  };
-  auto is_mode = [argv](std::string_view str) { return str == argv[1]; };
-  auto ask = []() {
-    std::cout << "Are you sure? Y/n: ";
+bool ask() {
+  std::cout << "Are you sure? Y/n: ";
+  char c;
+  std::cin >> c;
+  return c == 'Y' || c == 'y';
+}
+
+bool directory_exists(const fs::path& path) {
+  return fs::exists(path) && fs::is_directory(path);
+}
+
+void create_venv(int argc, char** argv) {
+  bool install_stdlib = true;
+  if (argc > 2 && std::string(argv[2]) == "--no-stdlib") {
+    install_stdlib = false;
+  }
+  if (directory_exists("__bervenv__"))
+    beryl::throw_arg_read_error(
+      "__bervenv__ folder already exists. Please "
+      "delete the existing venv or use a different directory.");
+  try {
+    fs::create_directory("__bervenv__");
+    fs::create_directory("__bervenv__/syspacks");
+    fs::create_directory("__bervenv__/build");
+  } catch (const std::filesystem::filesystem_error& e) {
+    fs::remove_all("__bervenv__");
+    beryl::throw_arg_read_error("Failed to create venv: " + std::string(e.what()));
+  }
+  if (install_stdlib) {
+    // MineralOil needs to be implemented first
+  }
+}
+
+void destroy_venv(int argc, char** argv) {
+  if (!directory_exists("__bervenv__"))
+    beryl::throw_arg_read_error("Bervenv does not exist to remove");
+  std::error_code ec;
+  bool do_rem = false;
+  if (argc > 2) {
+    if (std::string(argv[2]) == "--force") do_rem = true;
+  } else
+    do_rem = ask();
+  if (do_rem) {
+    std::uintmax_t count = fs::remove_all("__bervenv__", ec);
+    if (count == static_cast<std::uintmax_t>(-1) || ec.value() != 0)
+      beryl::throw_arg_read_error("Failed to destroy venv: " + ec.message());
+  }
+}
+
+void build(int argc, char** argv) {
+  beryl::Arena alloc;
+  if (!directory_exists("__bervenv__")) {
+    std::cerr << "Bervenv does not exist. Would you like to create it? Y/n: ";
     char c;
     std::cin >> c;
-    return c == 'Y' || c == 'y';
-  };
+    if (c == 'Y' || c == 'y') {
+      create_venv(argc, argv);
+    } else beryl::fail();
+  }
+  std::vector<fs::path, beryl::ArenaAllocator<fs::path>> paths_to_by_file{
+    beryl::ArenaAllocator<fs::path>(alloc) };
+  std::vector<std::string, beryl::ArenaAllocator<std::string>> includes{
+    beryl::ArenaAllocator<std::string>(alloc) };
+  std::optional<fs::path> exec{};
+  Version ver{ .major = 1, .minor = 0 };
+  bool link = true;
+  bool force_module_recompile = false;
+  OptLevel opt_level = OptLevel::NONE;
+
+  for (size_t i = 2; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (fs::path(arg).extension() == ".by") paths_to_by_file.emplace_back(arg);
+    else if (arg == "--no-link") link = false;
+    else if (arg == "--force-module-recompile") force_module_recompile = true;
+    else if (arg == "-O0") opt_level = OptLevel::NONE;
+    else if (arg == "-O1") opt_level = OptLevel::ONE;
+    else if (arg == "-O2") opt_level = OptLevel::TWO;
+    else if (arg == "-O3") opt_level = OptLevel::THREE;
+    else if (arg.rfind("-includes=", 0) == 0) includes = beryl::get_includes(arg.substr(10));
+    else if (arg.rfind("-out=", 0) == 0) exec = arg.substr(5);
+    else if (arg.rfind("-std=", 0) == 0) {
+      std::string verstr = arg.substr(5);
+      if (verstr == "be1") ver = { .major = 1, .minor = 0 };
+      else beryl::throw_arg_read_error("Unknown version: " + verstr);
+    } else beryl::throw_arg_read_warning("Unknown compiler argument: " + arg);
+  }
+
+  if (paths_to_by_file.size() == 0) beryl::throw_arg_read_error("There is no .by file to compile");
+  if (paths_to_by_file.size() > 1 && exec.has_value())
+    beryl::throw_arg_read_error("Cannot redirect output for multiple files");
+
+  llvm::LLVMContext context;
+
+  if (ver == Version{ .major = 1, .minor = 0 }) {
+    for (const std::filesystem::path& path : paths_to_by_file) {
+      llvm::Module mod("BerylliumModule", context);
+      llvm::IRBuilder<> builder(context);
+
+      std::string buf;
+      if (!fs::exists(path)) {
+        bool found = false;
+        for (const auto& prefix : includes) {
+          if (auto appended_path = prefix / path; fs::exists(appended_path)) {
+            std::ifstream file(appended_path);
+            if (file.is_open() && file.good()) {
+              std::ostringstream tmp;
+              tmp << file.rdbuf();
+              buf = tmp.str();
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found) beryl::throw_arg_read_error("Could not find file: " + path.string());
+      } else {
+        std::ifstream file(path);
+        if (file.is_open() && file.good()) {
+          std::ostringstream tmp;
+          tmp << file.rdbuf();
+          buf = tmp.str();
+        } else {
+          beryl::throw_arg_read_error("Failed to open file: " + path.string());
+        }
+      }
+
+      std::vector<Token, beryl::ArenaAllocator<Token>> tokens = [&buf, &path, &alloc]() {
+        std::vector<Token, beryl::ArenaAllocator<Token>> tokens{ beryl::ArenaAllocator<Token>(alloc) };
+        size_t cursor = 0;
+        int line = 1;
+        int col = 1;
+        bool in_type_dec = false;
+
+        auto peek = [&](size_t offset = 0) {
+          if (cursor + offset >= buf.length())
+            return '\0';
+          return buf[cursor + offset];
+        };
+
+        constexpr int MAX_ITER = 10000;
+        int iter_num = 0;
+        while (cursor < buf.length()) {
+          if (iter_num >= MAX_ITER) {
+            beryl::throw_arg_read_error("Tokenizer iteration limit exceeded");
+          }
+          // skips whitespace
+          while (std::isspace(peek())) {
+            std::cerr << "Skipping whitespace\n";
+            if (peek() == '\n') ++line;
+            ++col;
+            ++cursor;
+          }
+          // checks single-line comments
+          if (peek() == '/' && peek(1) == '/') {
+            std::cerr << "Saw single-line comment\n";
+            cursor += 2;
+            col += 2;
+            while (peek() != '\n' && peek() != '\0') {
+              std::cerr << "Continuing comment\n";
+              ++cursor;
+              ++col;
+            }
+            if (peek() != '\0') {
+              ++cursor;
+              ++line;
+            }
+          }
+
+          // checks multi-line comments
+          if (peek() == '/' && peek(1) == '*') {
+            std::cerr << "Saw multi-line comment\n";
+            cursor += 2;
+            col += 2;
+            while (!(peek() == '*' && peek(1) == '/') && cursor < buf.length()) {
+              std::cerr << "Continued multi-line comment\n";
+              if (peek() == '\n') ++line;
+              ++cursor;
+              ++col;
+            }
+            if (peek() == '*' && peek(1) == '/') {
+              cursor += 2;
+              col += 2;
+            }
+          }
+
+          // checks string literals (sorry no f strings yet)
+          if (peek() == '"') {
+            std::cerr << "Saw string literal\n";
+            Token tok;
+            tok.type = Token::STR_LIT;
+            tok.line = line;
+            tok.col = col;
+            ++cursor;
+            ++col;
+            while (peek() != '"' && cursor < buf.length()) {
+              std::cerr << "Continued string literal\n";
+              if (peek() == '\\' && peek(1) == 'n') {
+                cursor += 2;
+                col += 2;
+                tok.metadata += '\n';
+              } else if (peek() == '\\' && peek(1) == '\n') {
+                cursor += 2;
+                col += 2;
+                ++line;
+              } else if (peek() == '\\' && peek(1) == '0') {
+                cursor += 2;
+                col += 2;
+                tok.metadata += '\0';
+              } else if (peek() == '\\' && peek(1) == '"') {
+                cursor += 2;
+                col += 2;
+                tok.metadata += '"';
+              } else {
+                tok.metadata += peek();
+                ++cursor;
+                ++col;
+              }
+            }
+            if (cursor >= buf.length()) {
+              beryl::throw_arg_read_error("Unterminated string literal at line " + std::to_string(tok.line));
+            }
+            ++cursor;
+            ++col;
+            tokens.push_back(tok);
+          }
+
+          // checks character
+          if (peek() == '\'') {
+            // atriv you do this
+          }
+
+          // Keywords/Identifiers
+          if (std::isalpha(peek()) || peek() == '_') {
+            std::string s;
+            int start_col = col;
+            while (std::isalnum(peek()) || peek() == '_') {
+              s += peek();
+              ++cursor; ++col;
+            }
+
+            Token tok;
+            tok.line = line;
+            tok.col = start_col;
+            tok.metadata = s;
+
+            if (auto it = keywords.find(s); it != keywords.cend()) tok.type = it->second;
+            else tok.type = Token::IDENT;
+
+            tokens.push_back(tok);
+            continue;
+          }
+
+          // Number literals
+          if (peek() == '-' || std::isdigit(peek())) {
+            // Atriv does this
+          }
+          ++iter_num;
+        }
+        return tokens;
+      }();
+    }
+  }
+}
+
+int main(int argc, char* argv[]) {
+  std::cout << std::boolalpha;
+  auto is_mode = [argv](std::string_view str) { return str == argv[1]; };
   if (argc == 1)
     beryl::throw_arg_read_error(
       "Can choose beryl build, beryl create, or beryl destroy");
   if (is_mode("create")) {
-    if (directory_exists("__bervenv__"))
-      beryl::throw_arg_read_error("__bervenv__ folder already exists. Please "
-        "delete the existing venv or use a different directory.");
-    fs::create_directory("__bervenv__");
-    fs::create_directory("__bervenv__/syspacks");
-    fs::create_directory("__bervenv__/build");
+    create_venv(argc, argv);
   } else if (is_mode("destroy")) {
-    if (!directory_exists("__bervenv__"))
-      beryl::throw_arg_read_error("Bervenv does not exist to remove");
-    std::error_code ec;
-    bool do_rem = false;
-    if (argc > 2) {
-      if (std::string(argv[2]) == "--force") do_rem = true;
-    } else do_rem = ask();
-    if (do_rem) {
-      std::uintmax_t count = fs::remove_all("__bervenv__", ec);
-      if (count == static_cast<std::uintmax_t>(-1) || ec.value() != 0)
-        beryl::throw_arg_read_error("Failed to destroy venv: " + ec.message());
-    }
+    destroy_venv(argc, argv);
   } else if (is_mode("build")) {
-    if (!directory_exists("__bervenv__")) beryl::throw_arg_read_error("No bervenv to compile in");
-    std::vector<fs::path> paths_to_by_file;
-    std::vector<std::string> includes;
-    std::optional<fs::path> exec{};
-    Version ver{ .major = 1, .minor = 0 };
-    bool link = true;
-    bool force_module_recompile = false;
-    OptLevel opt_level = OptLevel::NONE;
-
-    for (size_t i = 2; i < argc; ++i) {
-      std::string arg = argv[i];
-      if (fs::path(arg).extension() == ".by") paths_to_by_file.emplace_back(arg);
-      else if (arg == "--no-link") link = false;
-      else if (arg == "--force-module-recompile") force_module_recompile = true;
-      else if (arg == "-O0") opt_level = OptLevel::NONE;
-      else if (arg == "-O1") opt_level = OptLevel::ONE;
-      else if (arg == "-O2") opt_level = OptLevel::TWO;
-      else if (arg == "-O3") opt_level = OptLevel::THREE;
-      else if (arg.rfind("-includes=", 0) == 0) includes = beryl::get_includes(arg.substr(10));
-      else if (arg.rfind("-out=", 0) == 0) exec = arg.substr(5);
-      else if (arg.rfind("-std=", 0) == 0) {
-        std::string verstr = arg.substr(5);
-        if (verstr == "be1") ver = { .major = 1, .minor = 0 };
-        else beryl::throw_arg_read_error("Unknown version: " + verstr);
-      } else beryl::throw_arg_read_warning("Unknown compiler argument: " + arg);
-    }
-
-    if (paths_to_by_file.size() == 0) beryl::throw_arg_read_error("There is no .by file to compile");
-    if (paths_to_by_file.size() > 1 && exec.has_value())
-      beryl::throw_arg_read_error("Cannot redirect output for multiple files");
-
-    llvm::LLVMContext context;
-
-    if (ver == Version{ .major = 1, .minor = 0 }) {
-      for (const std::filesystem::path& path : paths_to_by_file) {
-        llvm::Module mod("BerylliumModule", context);
-        llvm::IRBuilder<> builder(context);
-
-        std::string buf;
-        if (!fs::exists(path)) {
-          bool found = false;
-          for (const auto& prefix : includes) {
-            if (auto appended_path = prefix / path; fs::exists(appended_path)) {
-              std::ifstream file(appended_path);
-              if (file.is_open() && file.good()) {
-                std::ostringstream tmp;
-                tmp << file.rdbuf();
-                buf = tmp.str();
-                found = true;
-                break;
-              }
-            }
-          }
-          if (!found) beryl::throw_arg_read_error("Could not find file: " + path.string());
-        } else {
-          std::ifstream file(path);
-          if (file.is_open() && file.good()) {
-            std::ostringstream tmp;
-            tmp << file.rdbuf();
-            buf = tmp.str();
-          } else {
-            beryl::throw_arg_read_error("Failed to open file: " + path.string());
-          }
-        }
-
-        std::vector<Token> tokens = [&buf, &path]() {
-          std::vector<Token> tokens;
-          size_t cursor = 0;
-          int line = 1;
-          int col = 1;
-          bool in_type_dec = false;
-
-          auto peek = [&](size_t offset = 0) {
-            if (cursor + offset >= buf.length())
-              return '\0';
-            return buf[cursor + offset];
-          };
-
-          constexpr int MAX_ITER = 10000;
-          int iter_num = 0;
-          while (cursor < buf.length() && iter_num < MAX_ITER) {
-            // skips whitespace
-            while (std::isspace(peek())) {
-              std::cerr << "Skipping whitespace\n";
-              if (peek() == '\n') ++line;
-              ++col;
-              ++cursor;
-            }
-            // checks single-line comments
-            if (peek() == '/' && peek(1) == '/') {
-              std::cerr << "Saw single-line comment\n";
-              cursor += 2;
-              col += 2;
-              while (peek() != '\n') {
-                std::cerr << "Continuing comment\n";
-                ++cursor;
-                ++col;
-              }
-              ++cursor;
-              ++line;
-            }
-
-            // checks multi-line comments
-            if (peek() == '/' && peek(1) == '*') {
-              std::cerr << "Saw multi-line comment\n";
-              cursor += 2;
-              col += 2;
-              while (!(peek() == '*' && peek(1) == '/') && cursor < buf.length()) {
-                std::cerr << "Continued multi-line comment\n";
-                if (peek() == '\n') ++line;
-                ++cursor;
-                ++col;
-              }
-            }
-
-            // checks string literals (sorry no f strings yet)
-            if (peek() == '"') {
-              std::cerr << "Saw string literal\n";
-              Token tok;
-              tok.type = Token::STR_LIT;
-              tok.line = line;
-              tok.col = col;
-              ++cursor;
-              ++col;
-              while (peek() != '"' && cursor < buf.length()) {
-                std::cerr << "Continued string literal\n";
-                if (peek() == '\\' && peek(1) == 'n') {
-                  cursor += 2;
-                  col += 2;
-                  tok.metadata += '\n';
-                } else if (peek() == '\\' && peek(1) == '\n') {
-                  cursor += 2;
-                  col += 2;
-                  ++line;
-                } else if (peek() == '\\' && peek(1) == '\0') {
-                  cursor += 2;
-                  col += 2;
-                  tok.metadata += '\0';
-                } else if (peek() == '\\' && peek(1) == '"') {
-                  cursor += 2;
-                  col += 2;
-                  tok.metadata += '"';
-                } else {
-                  tok.metadata += peek();
-                  ++cursor;
-                  ++col;
-                }
-              }
-              ++cursor;
-              ++col;
-              tokens.push_back(tok);
-            }
-
-            // checks character
-            if (peek() == '\'') {
-              // atriv you do this
-            }
-
-            // Keywords/Identifiers
-            if (std::isalpha(peek()) || peek() == '_') {
-              std::string s;
-              int start_col = col;
-              while (std::isalnum(peek()) || peek() == '_') {
-                s += peek();
-                ++cursor; ++col;
-              }
-
-              Token tok;
-              tok.line = line;
-              tok.col = start_col;
-              tok.metadata = s;
-
-              if (auto it = keywords.find(s); it != keywords.cend()) tok.type = it->second;
-              else tok.type = Token::IDENT;
-
-              tokens.push_back(tok);
-              continue;
-            }
-
-            // Number literals
-            if (peek() == '-' || std::isdigit(peek())) {
-              // Atriv does this
-            }
-            ++iter_num;
-          }
-          return tokens;
-        }();
-      }
-    }
+    build(argc, argv);
   } else if (is_mode("help") || is_mode("--help")) {
     std::cout << "Beryl help page\n"
       "beryl create: creates a virtual environment\n"
