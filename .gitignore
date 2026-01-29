@@ -6,3 +6,4 @@
 objfiles
 compile_commands.json
 /.cache
+/.venv

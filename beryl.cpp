@@ -1,6 +1,6 @@
 #include "utils/error.hpp"
 #include "utils/parse_json_params.hpp"
-#include "utils/arena_allocator.hpp"
+#include "utils/arena.hpp"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"

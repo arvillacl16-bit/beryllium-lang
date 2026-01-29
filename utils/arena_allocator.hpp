@@ -23,7 +23,7 @@ namespace beryl {
 
     T* allocate(std::size_t n) {
       if (n > 0 && n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
-        throw std::bad_alloc();
+        throw_arg_read_error("ArenaAllocator allocation size overflow");
       }
       void* ptr = arena->allocate_bytes(
         n * sizeof(T), alignof(T));
