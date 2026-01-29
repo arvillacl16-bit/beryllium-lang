@@ -11,6 +11,11 @@
 #include <vector>
 #include <optional>
 
+struct CompileArgs {
+  int argc;
+  char** argv;
+};
+
 struct Version {
   unsigned int major;
   unsigned int minor;
@@ -50,6 +55,7 @@ struct Token {
     DO,
     COLON,
     COMMA,
+    DOT,
     FUNC,
     OPEN_PAREN,
     CLOSE_PAREN,
@@ -63,7 +69,6 @@ struct Token {
     MOD,
     MUT,
     LEFT_SHIFT,
-    RIGHT_SHIFT,
     LESS,
     GREATER,
     OPEN_CURLY,
@@ -112,40 +117,130 @@ struct Token {
     TYPEOF,
     VALAT,
     PTRTO,
-    SIZEOF
+    SIZEOF,
+    PLUS_EQ,
+    MINUS_EQ,
+    ASTER_EQ,
+    FORW_SLASH_EQ,
+    MOD_EQ,
+    PLUS_PLUS,
+    MINUS_MINUS,
+    IMPORT,
+    FROM,
+    TRUE,
+    FALSE,
+    NULLPTR,
+    UNKNOWN_TOKEN
   } type;
 
   std::string metadata;
   int line;
   int col;
+
+  std::string to_string() const {
+    switch (type) {
+      case SEMI: return "SEMI";
+      case INT_LIT: return "INT_LIT";
+      case FLOAT_LIT: return "FLOAT_LIT";
+      case STR_LIT: return "STR_LIT";
+      case CHAR_LIT: return "CHAR_LIT";
+      case VAR: return "VAR";
+      case IDENT: return "IDENT(" + metadata + ")";
+      case IF: return "IF";
+      case WHILE: return "WHILE";
+      case DO: return "DO";
+      case COLON: return "COLON";
+      case COMMA: return "COMMA";
+      case DOT: return "DOT";
+      case FUNC: return "FUNC";
+      case OPEN_PAREN: return "OPEN_PAREN";
+      case CLOSE_PAREN: return "CLOSE_PAREN";
+      case EXIT: return "EXIT";
+      case RETURN: return "RETURN";
+      case PLUS: return "PLUS";
+      case MINUS: return "MINUS";
+      case ASTER: return "ASTER";
+      case FORW_SLASH: return "FORW_SLASH";
+      case BACK_SLASH: return "BACK_SLASH";
+      case MOD: return "MOD";
+      case MUT: return "MUT";
+      case LEFT_SHIFT: return "LEFT_SHIFT";
+      case LESS: return "LESS";
+      case GREATER: return "GREATER";
+      case OPEN_CURLY: return "OPEN_CURLY";
+      case CLOSE_CURLY: return "CLOSE_CURLY";
+      case FOR: return "FOR";
+      case REPEAT: return "REPEAT";
+      case BAND: return "BAND";
+      case BOR: return "BOR";
+      case BXOR: return "BXOR";
+      case BXNOT: return "BXNOT";
+      case AS: return "AS";
+      case UNSAFE: return "UNSAFE";
+      case AND: return "AND";
+      case OR: return "OR";
+      case NOT: return "NOT";
+      case EQ: return "EQ";
+      case ASSIGN: return "ASSIGN";
+      case NOT_EQ: return "NOT_EQ";
+      case BOOL: return "BOOL";
+      case CHAR: return "CHAR";
+      case BYTE: return "BYTE";
+      case INT: return "INT";
+      case LONG: return "LONG";
+      case QINT: return "QINT";
+      case UBYTE: return "UBYTE";
+      case UINT: return "UINT";
+      case ULONG: return "ULONG";
+      case UQINT: return "UQINT";
+      case FLOAT: return "FLOAT";
+      case DOUBLE: return "DOUBLE";
+      case NMSP: return "NMSP";
+      case STRING: return "STRING";
+      case BYTESTREAM: return "BYTESTREAM";
+      case ARR: return "ARR";
+      case DYNARR: return "DYNARR";
+      case ADR: return "ADR";
+      case PTR: return "PTR";
+      case RCPTR: return "RCPTR";
+      case WEAKPTR: return "WEAKPTR";
+      case UNSAFEPTR: return "UNSAFEPTR";
+      case REF: return "REF";
+      case RESULT: return "RESULT";
+      case TUP: return "TUP";
+      case HEXC: return "HEXC";
+      case UNIC: return "UNIC";
+      case TYPEOF: return "TYPEOF";
+      case VALAT: return "VALAT";
+      case PTRTO: return "PTRTO";
+      case SIZEOF: return "SIZEOF";
+      case PLUS_EQ: return "PLUS_EQ";
+      case MINUS_EQ: return "MINUS_EQ";
+      case ASTER_EQ: return "ASTER_EQ";
+      case FORW_SLASH_EQ: return "FORW_SLASH_EQ";
+      case MOD_EQ: return "MOD_EQ";
+      case PLUS_PLUS: return "PLUS_PLUS";
+      case MINUS_MINUS: return "MINUS_MINUS";
+      case UNKNOWN_TOKEN: return "UNKNOWN_TOKEN";
+      case IMPORT: return "IMPORT";
+      case FROM: return "FROM";
+      case TRUE: return "TRUE";
+      case FALSE: return "FALSE";
+      case NULLPTR: return "NULLPTR";
+      default: return "INVALID_TOKEN";
+    }
+  }
 };
 
 const std::unordered_map<std::string_view, decltype(Token::VAR)> keywords = {
-    {";", Token::SEMI},
     {"var", Token::VAR},
     {"if", Token::IF},
     {"while", Token::WHILE},
     {"do", Token::DO},
-    {":", Token::COLON},
-    {",", Token::COMMA},
     {"func", Token::FUNC},
-    {"(", Token::OPEN_PAREN},
-    {")", Token::CLOSE_PAREN},
     {"exit", Token::EXIT},
     {"return", Token::RETURN},
-    {"+", Token::PLUS},
-    {"-", Token::MINUS},
-    {"*", Token::ASTER},
-    {"/", Token::FORW_SLASH},
-    {"\\", Token::BACK_SLASH},
-    {"%", Token::MOD},
     {"mut", Token::MUT},
-    {"<<", Token::LEFT_SHIFT},
-    {">>", Token::RIGHT_SHIFT},
-    {"<", Token::LESS},
-    {">", Token::GREATER},
-    {"{", Token::OPEN_CURLY},
-    {"}", Token::CLOSE_CURLY},
     {"for", Token::FOR},
     {"repeat", Token::REPEAT},
     {"band", Token::BAND},
@@ -154,12 +249,6 @@ const std::unordered_map<std::string_view, decltype(Token::VAR)> keywords = {
     {"bxnot", Token::BXNOT},
     {"as", Token::AS},
     {"unsafe", Token::UNSAFE},
-    {"&&", Token::AND},
-    {"||", Token::OR},
-    {"!", Token::NOT},
-    {"=", Token::ASSIGN},
-    { "==", Token::EQ },
-    {"!=", Token::NOT_EQ},
     {"bool", Token::BOOL},
     {"char", Token::CHAR},
     {"byte", Token::BYTE},
@@ -190,8 +279,37 @@ const std::unordered_map<std::string_view, decltype(Token::VAR)> keywords = {
     {"typeof", Token::TYPEOF},
     {"valat", Token::VALAT},
     {"ptrto", Token::PTRTO},
-    {"sizeof", Token::SIZEOF}
-};
+    {"sizeof", Token::SIZEOF},
+    {"import", Token::IMPORT},
+    {"from", Token::FROM},
+    {"true", Token::TRUE},
+    {"false", Token::FALSE},
+    {"nullptr", Token::NULLPTR} };
+
+const std::unordered_map<char, decltype(Token::VAR)> symbols = {
+    {';', Token::SEMI},        {'(', Token::OPEN_PAREN},
+    {')', Token::CLOSE_PAREN}, {'{', Token::OPEN_CURLY},
+    {'}', Token::CLOSE_CURLY}, {':', Token::COLON},
+    {',', Token::COMMA},       {'+', Token::PLUS},
+    {'-', Token::MINUS},       {'*', Token::ASTER},
+    {'/', Token::FORW_SLASH},  {'\\', Token::BACK_SLASH},
+    {'%', Token::MOD},         {'<', Token::LESS},
+    {'>', Token::GREATER},     {'=', Token::ASSIGN},
+    {'!', Token::NOT},         {'.', Token::DOT} };
+
+const std::unordered_map<std::string, decltype(Token::VAR)> double_symbols = {
+    {"&&", Token::AND},
+    {"||", Token::OR},
+    {"==", Token::EQ},
+    {"!=", Token::NOT_EQ},
+    {"<<", Token::LEFT_SHIFT},
+    {"+=", Token::PLUS_EQ},
+    {"-=", Token::MINUS_EQ},
+    {"*=", Token::ASTER_EQ},
+    {"/=", Token::FORW_SLASH_EQ},
+    {"%=", Token::MOD_EQ},
+    {"++", Token::PLUS_PLUS},
+    {"--", Token::MINUS_MINUS} };
 
 namespace fs = std::filesystem;
 
@@ -206,9 +324,9 @@ bool directory_exists(const fs::path& path) {
   return fs::exists(path) && fs::is_directory(path);
 }
 
-void create_venv(int argc, char** argv) {
+void create_venv(CompileArgs args) {
   bool install_stdlib = true;
-  if (argc > 2 && std::string(argv[2]) == "--no-stdlib") {
+  if (args.argc > 2 && std::string(args.argv[2]) == "--no-stdlib") {
     install_stdlib = false;
   }
   if (directory_exists("__bervenv__"))
@@ -228,13 +346,13 @@ void create_venv(int argc, char** argv) {
   }
 }
 
-void destroy_venv(int argc, char** argv) {
+void destroy_venv(CompileArgs args) {
   if (!directory_exists("__bervenv__"))
     beryl::throw_arg_read_error("Bervenv does not exist to remove");
   std::error_code ec;
   bool do_rem = false;
-  if (argc > 2) {
-    if (std::string(argv[2]) == "--force") do_rem = true;
+  if (args.argc > 2) {
+    if (std::string(args.argv[2]) == "--force") do_rem = true;
   } else
     do_rem = ask();
   if (do_rem) {
@@ -244,28 +362,32 @@ void destroy_venv(int argc, char** argv) {
   }
 }
 
-void build(int argc, char** argv) {
+#pragma region AST Nodes
+
+
+
+#pragma endregion
+
+void build(CompileArgs args) {
   beryl::Arena alloc;
   if (!directory_exists("__bervenv__")) {
     std::cerr << "Bervenv does not exist. Would you like to create it? Y/n: ";
     char c;
     std::cin >> c;
     if (c == 'Y' || c == 'y') {
-      create_venv(argc, argv);
+      create_venv(args);
     } else beryl::fail();
   }
-  std::vector<fs::path, beryl::ArenaAllocator<fs::path>> paths_to_by_file{
-    beryl::ArenaAllocator<fs::path>(alloc) };
-  std::vector<std::string, beryl::ArenaAllocator<std::string>> includes{
-    beryl::ArenaAllocator<std::string>(alloc) };
+  std::vector<fs::path> paths_to_by_file;
+  std::vector<std::string> includes;
   std::optional<fs::path> exec{};
   Version ver{ .major = 1, .minor = 0 };
   bool link = true;
   bool force_module_recompile = false;
   OptLevel opt_level = OptLevel::NONE;
 
-  for (size_t i = 2; i < argc; ++i) {
-    std::string arg = argv[i];
+  for (size_t i = 2; i < args.argc; ++i) {
+    std::string arg = args.argv[i];
     if (fs::path(arg).extension() == ".by") paths_to_by_file.emplace_back(arg);
     else if (arg == "--no-link") link = false;
     else if (arg == "--force-module-recompile") force_module_recompile = true;
@@ -320,8 +442,8 @@ void build(int argc, char** argv) {
         }
       }
 
-      std::vector<Token, beryl::ArenaAllocator<Token>> tokens = [&buf, &path, &alloc]() {
-        std::vector<Token, beryl::ArenaAllocator<Token>> tokens{ beryl::ArenaAllocator<Token>(alloc) };
+      std::vector<Token> tokens = [&buf, &path, &alloc]() {
+        std::vector<Token> tokens;
         size_t cursor = 0;
         int line = 1;
         int col = 1;
@@ -341,18 +463,18 @@ void build(int argc, char** argv) {
           }
           // skips whitespace
           while (std::isspace(peek())) {
-            std::cerr << "Skipping whitespace\n";
-            if (peek() == '\n') ++line;
-            ++col;
+            if (peek() == '\n') {
+              ++line;
+              col = 1;
+            }
             ++cursor;
+            continue;
           }
           // checks single-line comments
           if (peek() == '/' && peek(1) == '/') {
-            std::cerr << "Saw single-line comment\n";
             cursor += 2;
             col += 2;
             while (peek() != '\n' && peek() != '\0') {
-              std::cerr << "Continuing comment\n";
               ++cursor;
               ++col;
             }
@@ -360,16 +482,16 @@ void build(int argc, char** argv) {
               ++cursor;
               ++line;
             }
+            continue;
           }
 
           // checks multi-line comments
           if (peek() == '/' && peek(1) == '*') {
-            std::cerr << "Saw multi-line comment\n";
             cursor += 2;
             col += 2;
             while (!(peek() == '*' && peek(1) == '/') && cursor < buf.length()) {
-              std::cerr << "Continued multi-line comment\n";
-              if (peek() == '\n') ++line;
+              if (peek() == '\n')
+                ++line;
               ++cursor;
               ++col;
             }
@@ -377,11 +499,11 @@ void build(int argc, char** argv) {
               cursor += 2;
               col += 2;
             }
+            continue;
           }
 
           // checks string literals (sorry no f strings yet)
           if (peek() == '"') {
-            std::cerr << "Saw string literal\n";
             Token tok;
             tok.type = Token::STR_LIT;
             tok.line = line;
@@ -389,7 +511,6 @@ void build(int argc, char** argv) {
             ++cursor;
             ++col;
             while (peek() != '"' && cursor < buf.length()) {
-              std::cerr << "Continued string literal\n";
               if (peek() == '\\' && peek(1) == 'n') {
                 cursor += 2;
                 col += 2;
@@ -406,18 +527,21 @@ void build(int argc, char** argv) {
                 cursor += 2;
                 col += 2;
                 tok.metadata += '"';
-              } else {
+              } else if (peek() != '\\') {
                 tok.metadata += peek();
                 ++cursor;
                 ++col;
+              } else {
+                beryl::throw_lex_error("Unknown escape sequence in string literal", line, col);
               }
             }
             if (cursor >= buf.length()) {
-              beryl::throw_arg_read_error("Unterminated string literal at line " + std::to_string(tok.line));
+              beryl::throw_lex_error("Unterminated string literal", tok.line, tok.col);
             }
             ++cursor;
             ++col;
             tokens.push_back(tok);
+            continue;
           }
 
           // checks character
@@ -431,7 +555,8 @@ void build(int argc, char** argv) {
             int start_col = col;
             while (std::isalnum(peek()) || peek() == '_') {
               s += peek();
-              ++cursor; ++col;
+              ++cursor;
+              ++col;
             }
 
             Token tok;
@@ -439,53 +564,141 @@ void build(int argc, char** argv) {
             tok.col = start_col;
             tok.metadata = s;
 
-            if (auto it = keywords.find(s); it != keywords.cend()) tok.type = it->second;
-            else tok.type = Token::IDENT;
+            if (auto it = keywords.find(s); it != keywords.cend())
+              tok.type = it->second;
+            else
+              tok.type = Token::IDENT;
 
             tokens.push_back(tok);
             continue;
           }
 
           // Number literals
-          if (peek() == '-' || std::isdigit(peek())) {
-            // Atriv does this
+          if ((peek() == '-' && std::isdigit(peek(1))) || std::isdigit(peek())) {
+            Token tok;
+            tok.line = line;
+            tok.col = col;
+            std::string num_str;
+            bool is_float = false;
+            if (peek() == '-') {
+              num_str += '-';
+              ++cursor;
+              ++col;
+            }
+            while (std::isdigit(peek()) || peek() == '.') {
+              if (peek() == '.') {
+                if (is_float) {
+                  beryl::throw_lex_error(
+                    "Multiple decimal points in number literal", line, col);
+                }
+                is_float = true;
+              }
+              num_str += peek();
+              ++cursor;
+              ++col;
+            }
+            tok.type = is_float ? Token::FLOAT_LIT : Token::INT_LIT;
+            tok.metadata = num_str;
+            tokens.push_back(tok);
+            continue;
+          }
+
+          // Symbols
+          bool matched_symbol = false;
+          if (cursor + 1 < buf.length()) {
+            std::string potential_double = { peek(), peek(1) };
+            if (potential_double == ">>") {
+              for (int i = 0; i < 2; ++i) {
+                Token tok;
+                tok.type = Token::GREATER;
+                tok.line = line;
+                tok.col = col + i;
+                tok.metadata = ">";
+                tokens.push_back(tok);
+              }
+              cursor += 2;
+              col += 2;
+              matched_symbol = true;
+            }
+            if (auto it = double_symbols.find(potential_double); it != double_symbols.cend()) {
+              Token tok;
+              tok.type = it->second;
+              tok.line = line;
+              tok.col = col;
+              tok.metadata = potential_double;
+              tokens.push_back(tok);
+              cursor += 2;
+              col += 2;
+              matched_symbol = true;
+            }
+          }
+
+          if (!matched_symbol) {
+            if (auto it = symbols.find(peek()); it != symbols.cend()) {
+              Token tok;
+              tok.type = it->second;
+              tok.line = line;
+              tok.col = col;
+              tok.metadata = peek();
+              tokens.push_back(tok);
+              ++cursor;
+              ++col;
+              matched_symbol = true;
+            } else {
+              beryl::throw_lex_error(
+                std::string("Unknown symbol: ") + peek(), line, col);
+            }
+          }
+
+          if (matched_symbol) {
+            iter_num++;
+            continue;
           }
           ++iter_num;
         }
         return tokens;
       }();
+      for (const auto& token : tokens) {
+        std::cout << token.to_string() << " at line " << token.line << ", col " << token.col
+          << "\n";
+      }
     }
   }
 }
 
+void help() {
+  std::cout << "Beryl help page\n"
+    "beryl create: creates a virtual environment\n"
+    "    --no-stdlib: does not install the standard library\n"
+    "beryl destroy: removes the virtual environment\n"
+    "    --force: removes the prompt\n"
+    "beryl build: builds a file\n"
+    "    --no-link: does not link the object file\n"
+    "    --force-module-recompile: recompiles all modules\n"
+    "    -O0: no optimization\n"
+    "    -O1: one level optimization\n"
+    "    -O2: two levels of optimization\n"
+    "    -O3: three levels of optimization\n"
+    "    -includes= : include paths provided in a JSON file\n"
+    "    -out= : output file, with no linking, object file, with linking, executable\n"
+    "    -std= : Beryllium standard to use. Valid values are be1. Defaults to latest version, currently be1\n";
+}
+
 int main(int argc, char* argv[]) {
+  CompileArgs args{ argc, argv };
   std::cout << std::boolalpha;
   auto is_mode = [argv](std::string_view str) { return str == argv[1]; };
   if (argc == 1)
     beryl::throw_arg_read_error(
       "Can choose beryl build, beryl create, or beryl destroy");
   if (is_mode("create")) {
-    create_venv(argc, argv);
+    create_venv(args);
   } else if (is_mode("destroy")) {
-    destroy_venv(argc, argv);
+    destroy_venv(args);
   } else if (is_mode("build")) {
-    build(argc, argv);
+    build(args);
   } else if (is_mode("help") || is_mode("--help")) {
-    std::cout << "Beryl help page\n"
-      "beryl create: creates a virtual environment\n"
-      "    --no-stdlib: does not install the standard library\n"
-      "beryl destroy: removes the virtual environment\n"
-      "    --force: removes the prompt\n"
-      "beryl build: builds a file\n"
-      "    --no-link: does not link the object file\n"
-      "    --force-module-recompile: recompiles all modules\n"
-      "    -O0: no optimization\n"
-      "    -O1: one level optimization\n"
-      "    -O2: two levels of optimization\n"
-      "    -O3: three levels of optimization\n"
-      "    -includes= : include paths provided in a JSON file\n"
-      "    -out= : output file, with no linking, object file, with linking, executable\n"
-      "    -std= : Beryllium standard to use. Valid values are be1. Defaults to latest version, currently be1\n";
+    help();
   } else if (is_mode("--version") || is_mode("version") || is_mode("-v")) {
     std::cout << "Beryl 1.0\n";
   } else beryl::throw_arg_read_error("Unknown mode");
