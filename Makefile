@@ -3,6 +3,7 @@ LLVM_PATH := /opt/homebrew/opt/llvm
 CXX       := $(LLVM_PATH)/bin/clang++
 SDK_PATH  := $(shell xcrun --show-sdk-path)
 
+# cap all of this is un needed, just delete it
 # --- Paths & Flags ---
 INCLUDES  := -I$(SDK_PATH)/usr/include/c++/v1 \
              -I$(SDK_PATH)/usr/include \

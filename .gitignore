@@ -7,3 +7,9 @@ objfiles
 compile_commands.json
 /.cache
 /.venv
+
+
+# pentagon
+/pentagon-tests/
+/pentagon-tests/*
+pentagon-tests/
