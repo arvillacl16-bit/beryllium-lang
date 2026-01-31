@@ -343,9 +343,12 @@ void create_venv(CompileArgs args) {
     std::cerr << "Bervenv creation failed. Cleanup done.\n";
   }
   if (install_stdlib) {
-    // minoil is installed already
-    std::string command = "minoil install beryllium-stdlib";
-    std::cout << "Install Standard Library with command: " << command << "\n";
+    std::cout << "Installing standard library...\n";
+    try {
+      std::system("python3 -m mineraloil/minoil.py install stdlib");
+    } catch (const std::exception& e) {
+      beryl::throw_arg_read_error("Failed to install standard library: " + std::string(e.what()));
+    }
   }
 }
 
