@@ -269,7 +269,7 @@ void create_venv(CompileArgs args) {
   if (install_stdlib) {
     std::cout << "Installing standard library...\n";
     try {
-      std::system("python3 -m mineraloil install stdlib");
+      std::system("mineraloil install stdlib");
     } catch (const std::exception& e) {
       beryl::throw_arg_read_error("Failed to install standard library: " + std::string(e.what()));
     }
@@ -623,7 +623,7 @@ int main(int argc, char* argv[]) {
   auto is_mode = [argv](std::string_view str) { return str == argv[1]; };
   if (argc == 1)
     beryl::throw_arg_read_error(
-      "Can choose beryl build, beryl create, or beryl destroy");
+      "Options: create, destroy, build, help, version");
   if (is_mode("create")) {
     create_venv(args);
   } else if (is_mode("destroy")) {
