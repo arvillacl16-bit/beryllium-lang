@@ -6,20 +6,12 @@ import json
 
 # initial available packages (for testing)
 packages = [
-    "test",
-    "foo",
-    "bar",
-    "baz",
-    "std",
+    "stdlib",
 ]
 
 # simulate available versions for packages
 package_versions = {
-    "test": ["1.0.0", "1.1.0"],
-    "foo": ["1.0.0", "2.0.0"],
-    "bar": ["0.1.0", "0.2.0", "0.3.0"],
-    "baz": ["0.5.0"],
-    "std": ["0.1.0"],
+    "stdlib": ["1.0.0"],
 }
 
 # bervenv directory
