@@ -16,6 +16,8 @@ func start(args: dynarr<string>) {
   var b = true;
   var b_exp_type: bool = false;
 
+  var char_test = 'd';
+
   var nest_gen_check: dynarr<unsafeptr<int>>;
   exit 0;
 }
