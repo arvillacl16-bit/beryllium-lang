@@ -148,10 +148,11 @@ struct Token {
 
 using TokenType = decltype(Token::VAR);
 struct TokenStream {
+private:
   std::vector<Token> tokens;
   size_t cursor;
-
-  explicit TokenStream() = default;
+public:
+  explicit TokenStream() : cursor(0) {}
   explicit TokenStream(std::vector<Token>&& toks) : tokens(std::move(toks)), cursor(0) {}
   explicit TokenStream(const std::vector<Token>& toks) : tokens(toks), cursor(0) {}
 
@@ -268,7 +269,7 @@ void create_venv(CompileArgs args) {
   if (install_stdlib) {
     std::cout << "Installing standard library...\n";
     try {
-      std::system("python3 -m mineraloil/minoil.py install stdlib");
+      std::system("python3 -m mineraloil install stdlib");
     } catch (const std::exception& e) {
       beryl::throw_arg_read_error("Failed to install standard library: " + std::string(e.what()));
     }
