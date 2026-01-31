@@ -340,9 +340,12 @@ void create_venv(CompileArgs args) {
   } catch (const std::filesystem::filesystem_error& e) {
     fs::remove_all("__bervenv__");
     beryl::throw_arg_read_error("Failed to create venv: " + std::string(e.what()));
+    std::cerr << "Bervenv creation failed. Cleanup done.\n";
   }
   if (install_stdlib) {
-    // MineralOil needs to be implemented first
+    // minoil is installed already
+    std::string command = "minoil install beryllium-stdlib";
+    std::cout << "Install Standard Library with command: " << command << "\n";
   }
 }
 
