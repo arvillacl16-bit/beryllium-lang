@@ -99,6 +99,11 @@ struct Token {
   int line;
   int col;
 
+  bool operator==(const Token& other) const { return type == other.type && metadata == other.metadata; }
+  bool operator!=(const Token& other) const { return !(*this == other); }
+  bool operator==(decltype(Token::VAR) t) const { return type == t; }
+  bool operator!=(decltype(Token::VAR) t) const { return type != t; }
+
   std::string to_string() const {
     switch (type) {
       case SEMI: return "SEMI"; case INT_LIT: return "INT_LIT";
@@ -411,8 +416,13 @@ namespace ast {
     std::vector<std::variant<FunctionDecl*, VarDecl*, NamespaceDecl*>> members;
   };
 
+  struct ImportDecl {
+    std::string module_name;
+    std::vector<std::string> entities;
+  };
+
   struct Program {
-    std::vector<std::variant<FunctionDecl, VarDecl, NamespaceDecl>> body;
+    std::vector<std::variant<FunctionDecl, VarDecl, NamespaceDecl, ImportDecl>> body;
   };
 }
 
@@ -749,6 +759,15 @@ void build(CompileArgs args) {
         std::cout << token.to_string() << " at line " << token.line << ", col " << token.col
           << "\n";
       }
+
+      ast::Program* program = [&tokens, &alloc]() -> ast::Program* {
+        ast::Program* tree = alloc.alloc<ast::Program>();
+        while (tokens.has_next() && tokens.peek().type != Token::EOF_TOKEN) {
+          // TODO: Implement parsing logic here
+          tokens.advance();
+        }
+        return tree;
+      }();
     }
   }
 }
