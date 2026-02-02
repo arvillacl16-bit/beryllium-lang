@@ -11,17 +11,18 @@ SDK_PATH  := $(shell xcrun --show-sdk-path)
 INCLUDES  := -I$(SDK_PATH)/usr/include/c++/v1 \
              -I$(SDK_PATH)/usr/include \
              -I$(LLVM_PATH)/include \
-             -I.
+             -I..
 
 CXXFLAGS  := -std=c++20 -O2 -nostdinc++ $(INCLUDES) -isysroot $(SDK_PATH)
 LDFLAGS   := -L$(LLVM_PATH)/lib -Wl,-rpath,$(LLVM_PATH)/lib -lLLVM -lc++
 
 # --- Files ---
-SRCS      := beryl.cpp \
-						 $(wildcard be1/**/*.cpp) \
-						 $(wildcard struct-opt/*.cpp) \
-						 $(wildcard utils/*.cpp) \
-						 $(wildcard clparser/*.cpp)
+SRCS      := ../beryl.cpp \
+						 $(wildcard ../be1/lexer/*.cpp) \
+						 $(wildcard ../be1/parser/*.cpp) \
+						 $(wildcard ../struct-opt/*.cpp) \
+						 $(wildcard ../utils/*.cpp) \
+						 $(wildcard ../clparser/*.cpp)
 # This transforms the list of .cpp files into .o files
 OBJS      := $(SRCS:.cpp=.o)
 TARGET    := beryl
