@@ -1,26 +1,20 @@
 #include "struct_opt.hpp"
+#include <algorithm>
 
 namespace beryl {
   static void move_el(std::vector<Field>& fields, size_t from, size_t to) {
     if (from == to) return;
     Field temp = fields[from];
     if (from < to) {
-      for (size_t i = from; i < to; i++) {
-        fields[i] = fields[i + 1];
-      }
+      for (size_t i = from; i < to; i++) { fields[i] = fields[i + 1]; }
     } else {
-      for (size_t i = from; i > to; i--) {
-        fields[i] = fields[i - 1];
-      }
+      for (size_t i = from; i > to; i--) { fields[i] = fields[i - 1]; }
     }
     fields[to] = temp;
   }
 
   void opt_layout(std::vector<Field>& fields) {
-    std::stable_sort(fields.begin(), fields.end(),
-      [](const Field& a, const Field& b) {
-      return a.get_net_size() > b.get_net_size();
-    });
+    std::stable_sort(fields.begin(), fields.end(), [](const Field& a, const Field& b) { return a.get_net_size() > b.get_net_size(); });
 
     size_t current_offset = 0;
     for (size_t i = 0; i < fields.size(); ++i) {
@@ -32,7 +26,8 @@ namespace beryl {
           for (size_t j = i + 1; j < fields.size(); ++j) {
             if (fields[j].size <= gap) {
               move_el(fields, j, i + 1);
-            } else break;
+            } else
+              break;
           }
         }
       }
@@ -50,6 +45,6 @@ namespace beryl {
     }
 
     offset = (offset + struct_alignment - 1) & ~(struct_alignment - 1);
-    return { offset, struct_alignment };
+    return {offset, struct_alignment};
   }
 } // namespace beryl
