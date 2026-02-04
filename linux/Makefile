@@ -1,41 +1,44 @@
-# --- Project root ---
-ROOT := ..
+# This Makefile was copied from the homebrew clang version and modified for apple clang
 
-# --- Compiler ---
-CXX := g++
+# --- Compiler Selection ---
+LLVM_PATH   := /opt/homebrew/opt/llvm
+LLVM_CONFIG := $(LLVM_PATH)/bin/llvm-config
+CXX         := g++
+SDK_PATH    := $(shell xcrun --show-sdk-path)
 
-# --- Base flags (yours override LLVM) ---
-BASE_CXXFLAGS := -std=c++20 -O2 -Wall -Wextra -I$(ROOT) -fexceptions
+# --- LLVM Dynamic Flags ---
+LLVM_CXXFLAGS := $(shell $(LLVM_CONFIG) --cppflags)
+LLVM_LDFLAGS  := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
 
-# --- LLVM flags ---
-LLVM_CXXFLAGS := $(shell llvm-config --cxxflags)
-LLVM_LDFLAGS  := $(shell llvm-config --ldflags --libs --system-libs)
+# --- Paths & Flags ---
+INCLUDES  := -I..
 
-# --- Sources ---
-SRCS := $(ROOT)/beryl.cpp $(wildcard $(ROOT)/utils/*.cpp)
+CXXFLAGS  := -std=c++20 -O2 $(INCLUDES) $(LLVM_CXXFLAGS) -isysroot $(SDK_PATH)
+LDFLAGS   := -Wl,-rpath,$(LLVM_PATH)/lib $(LLVM_LDFLAGS) -lc++
 
-# --- Objects (mirror directory structure locally) ---
-OBJS := beryl.o $(patsubst $(ROOT)/utils/%.cpp,utils/%.o,$(wildcard $(ROOT)/utils/*.cpp))
+SRCS      := ../beryl.cpp \
+             $(wildcard ../be1/lexer/*.cpp) \
+             $(wildcard ../be1/parser/*.cpp) \
+             $(wildcard ../struct-opt/*.cpp) \
+             $(wildcard ../utils/*.cpp) \
+             $(wildcard ../clparser/*.cpp)
 
-TARGET := beryl
+OBJS      := $(SRCS:.cpp=.o)
+TARGET    := beryl
 
-# --- Rules ---
 all: $(TARGET)
 
-# Link
 $(TARGET): $(OBJS)
-	$(CXX) $(OBJS) $(LLVM_LDFLAGS) -o $@
+	$(CXX) $(OBJS) $(LDFLAGS) -o $(TARGET)
 
-# Root source
-beryl.o: $(ROOT)/beryl.cpp
-	$(CXX) $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) -c $< -o $@
-
-# utils/*.cpp → utils/*.o
-utils/%.o: $(ROOT)/utils/%.cpp
-	@mkdir -p utils
-	$(CXX) $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) -c $< -o $@
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(TARGET) beryl.o utils
+	rm -f $(TARGET) $(OBJS)
 
 .PHONY: all clean
+
+debug:
+	@echo "LLVM Flags: $(LLVM_CXXFLAGS)"
+	@echo "Source files: $(SRCS)"
