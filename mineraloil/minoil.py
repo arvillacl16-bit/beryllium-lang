@@ -15,10 +15,10 @@ def current_time():
 
 
 packages = [
-    "std",
+    "stdlib",
 ]
 package_versions = {
-    "std": ["1.0.0"],
+    "stdlib": ["1.0.0"],
 }
 
 

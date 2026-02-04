@@ -1,11 +1,11 @@
 Language: Cpp
-BasedOnStyle: LLVM
 IndentWidth: 2
 ColumnLimit: 150
 AllowShortBlocksOnASingleLine: Always
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
+AllowShortCaseExpressionOnASingleLine: true
 NamespaceIndentation: All
 CompactNamespaces: false
 DerivePointerAlignment: false
