@@ -12,32 +12,13 @@ start_time = time.time()
 def current_time():
     return time.time()
 
-timeout = 5
-# fix this with a lambda script to check timeout scripts.
-while (start_time + timeout) > current_time():
-    r = requests.get("https://pentagonx.github.io/beryllium-packages/packages.txt")
-    if (start_time + timeout) < current_time():
-        print("Operation Failed, offline mode detected!")
-        break
 
-print(r)
-response = r.text
-packages_unfiltered = response.splitlines()
-packages = []
-package_versions = {}
-for line in packages_unfiltered:
-    line = line.strip()
-    split_pos = line.find("@")
-    if split_pos == -1:
-        print("Warning: invalid packages, can be ignored.")
-    else:
-        pkg_name = line[:split_pos]
-        if pkg_name not in packages:
-            packages.append(pkg_name)
-        version = line[split_pos + 1:]
-        if pkg_name not in package_versions:
-            package_versions[pkg_name] = []
-        package_versions[pkg_name].append(version)
+packages = [
+    "std",
+]
+package_versions = {
+    "std": ["1.0.0"],
+}
 
 
 # bervenv directory
