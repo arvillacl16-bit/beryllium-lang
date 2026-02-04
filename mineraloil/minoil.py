@@ -9,6 +9,7 @@ import time
 # initial available packages (for testing)
 start_time = time.time()
 
+
 def current_time():
     return time.time()
 
@@ -30,9 +31,9 @@ PACKAGES_JSON = os.path.join(BERVENV_DIR, "syspacks/packages.json")
 # utility to read installed packages
 
 
-def read_installed_packages():
+def read_installed_packages() -> list:
     if not os.path.isdir(BERVENV_DIR):
-        return None  # venv not created
+        return []
     installed = []
     if os.path.isfile(PACKAGES_TXT):
         with open(PACKAGES_TXT, "r") as f:
@@ -73,14 +74,17 @@ def parse_package_arg(arg):
         name, version = arg, None
     return name, version
 
+
 def install_package(name, version):
-    r = requests.get("https://pentagonx.github.io/beryllium-packages/" + name + "/modules.txt")
+    r = requests.get(
+        "https://pentagonx.github.io/beryllium-packages/" + name + "/modules.txt")
     response = r.text
-    
+
     modules = response.splitlines()
     for element in modules:
         if len(element.strip()) > 51:
-            print(f"Warning: Invalid module name found. Can be ignored. [ERR: LONG_MODULE_NAME]")
+            print(
+                f"Warning: Invalid module name found. Can be ignored. [ERR: LONG_MODULE_NAME]")
             if name == element.strip():
                 print("Failure: Package is invalid due to module name being too long. Aborting installation. Please raise this to the package managers.")
                 return
@@ -91,8 +95,9 @@ def install_package(name, version):
     for module in modules:
         module_dir = os.path.join(package_dir, module)
         os.makedirs(module_dir, exist_ok=True)
-    
+
     print("Downloaded package modules.")
+
 
 def main():
     argc = len(sys.argv)
@@ -122,7 +127,8 @@ def main():
         name, version = parse_package_arg(package_arg)
 
         if name not in packages:
-            print(f"Error: Package '{name}' not found from packages: {packages}.")
+            print(
+                f"Error: Package '{name}' not found from packages: {packages}.")
             return
 
         # default to latest version if not specified
@@ -140,7 +146,8 @@ def main():
             if old_version == version:
                 print(f"Package '{full_package}' is already installed.")
             else:
-                action = "upgraded" if version > old_version else "downgraded"
+                action = "upgraded" if version > str(
+                    old_version) else "downgraded"
                 if force:
                     print(
                         f"Force {action} '{name}' from {old_version} to {version}...")
