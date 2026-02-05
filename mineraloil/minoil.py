@@ -77,7 +77,7 @@ def parse_package_arg(arg):
 
 def install_package(name, version):
     r = requests.get(
-        "https://pentagonx.github.io/beryllium-packages/" + name + "/modules.txt")
+        "https://pentagonx.github.io/beryllium-packages/" + name + "/files.txt")
     response = r.text
 
     modules = response.splitlines()
