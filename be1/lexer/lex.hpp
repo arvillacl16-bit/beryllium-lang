@@ -103,7 +103,8 @@ namespace beryl::be1 {
       PRIVATE,
       OP,
       FRIEND,
-      TYPE
+      TYPE,
+      TRAIT
     } type;
 
     std::string metadata;
@@ -212,15 +213,14 @@ namespace beryl::be1 {
   };
 
   using TokenType = decltype(Token::VAR);
-  struct TokenStream {
+  class TokenStream {
   private:
     std::vector<Token> tokens;
     size_t cursor;
 
   public:
     TokenStream() : cursor(0) {}
-    explicit TokenStream(std::vector<Token>&& toks) : tokens(std::move(toks)), cursor(0) {}
-    explicit TokenStream(const std::vector<Token>& toks) : tokens(toks), cursor(0) {}
+    TokenStream(const std::vector<Token>& tokens_) : tokens(tokens_), cursor(0) {}
 
     bool has_next() const { return cursor < tokens.size(); }
     const Token& peek(size_t offset = 0) const;
@@ -231,13 +231,14 @@ namespace beryl::be1 {
     private:
       const std::vector<Token>* data;
       size_t cursor;
-      size_t offset;
+
+      explicit Iterator(const TokenStream& stream) : data(&stream.tokens), cursor(stream.cursor) {}
 
     public:
-      explicit Iterator(const TokenStream& stream) : data(&stream.tokens), cursor(stream.cursor), offset(0) {}
+      Iterator() = delete;
 
-      const Token& operator*() { return (*data)[cursor + offset]; }
-      const Token* operator->() { return &operator*(); }
+      const Token& operator*() const { return (*data)[cursor]; }
+      const Token* operator->() const { return &operator*(); }
 
       Iterator& operator++() {
         ++cursor;
@@ -250,18 +251,25 @@ namespace beryl::be1 {
         return copy;
       }
 
-      Iterator operator+(size_t offset_) {
+      Iterator look_ahead(size_t offset_) const {
         Iterator res(*this);
-        res.offset += offset_;
+        res.cursor += offset_;
+        return res;
+      }
+
+      Iterator& operator+=(size_t offset_) {
+        cursor += offset_;
         return *this;
       }
 
-      bool operator==(const Iterator& other) { return other.data == data && other.offset == offset; }
-      bool operator!=(const Iterator& other) { return !operator==(other); }
+      bool operator==(const Iterator& other) const { return other.data == data && other.cursor == cursor; }
+      bool operator!=(const Iterator& other) const { return !operator==(other); }
+
+      friend TokenStream;
     };
 
     Iterator begin() { return Iterator(*this); }
-    Iterator end() { return begin() + (tokens.size() - cursor); }
+    Iterator end() { return begin().look_ahead(tokens.size() - cursor); }
   };
 
   TokenStream lex(std::string_view source, std::string_view path);

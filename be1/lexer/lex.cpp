@@ -56,7 +56,8 @@ namespace beryl::be1 {
       {"true", Token::TRUE},
       {"false", Token::FALSE},
       {"nullptr", Token::NULLPTR},
-      {"else", Token::ELSE}};
+      {"else", Token::ELSE},
+      {"trait", Token::TRAIT}};
 
   static const std::unordered_map<char, TokenType> symbols = {
       {';', Token::SEMI},       {'(', Token::OPEN_PAREN},  {'[', Token::OPEN_BRACKET}, {']', Token::CLOSE_BRACKET}, {')', Token::CLOSE_PAREN},
