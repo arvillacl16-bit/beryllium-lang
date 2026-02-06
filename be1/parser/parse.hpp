@@ -1,8 +1,8 @@
 #pragma once
 #include "be1/lexer/lex.hpp"
 #include "utils/arena.hpp"
-#include <variant>
 #include <optional>
+#include <variant>
 #include <vector>
 
 namespace beryl::be1 {
@@ -19,54 +19,122 @@ namespace beryl::be1 {
     };
 
     struct TypeNode {
-      std::variant<std::string, GenericType> specifier;
+      std::variant<std::string, GenericType*> specifier;
 
       bool is_mut = false;
       bool is_ref = false;
     };
 
-    struct IntLit { int64_t value; };
-    struct FloatLit { double value; };
-    struct StrLit { std::string value; };
-    struct CharLit { char value; };
-    struct BoolLit { bool value; };
-    struct VarRef { std::string name; };
-
-    struct AddExpr { Expr* left, * right; };
-    struct SubExpr { Expr* left, * right; };
-    struct MulExpr { Expr* left, * right; };
-    struct DivExpr { Expr* left, * right; };
-    struct ModExpr { Expr* left, * right; };
-    struct EqExpr { Expr* left, * right; };
-    struct NotEqExpr { Expr* left, * right; };
-    struct LessExpr { Expr* left, * right; };
-    struct GreaterExpr { Expr* left, * right; };
-    struct AndExpr { Expr* left, * right; };
-    struct OrExpr { Expr* left, * right; };
-
-    struct NormalAssign { Expr* target; Expr* value; };
-    struct AddAssign { Expr* target; Expr* value; };
-    struct SubAssign { Expr* target; Expr* value; };
-    struct MulAssign { Expr* target; Expr* value; };
-    struct DivAssign { Expr* target; Expr* value; };
-    struct ModAssign { Expr* target; Expr* value; };
-
-    struct ArrayAccess { Expr* array; Expr* index; bool is_at; };
-    struct CastExpr { Expr* expr; TypeNode* to; bool unsafe; };
-    struct CallExpr { std::string name; std::vector<Expr*> args; };
-    struct UnaryExpr { Token op; Expr* operand; };
-
-    struct Expr {
-      std::variant<
-        IntLit, FloatLit, StrLit, CharLit, BoolLit, VarRef,
-        AddExpr, SubExpr, MulExpr, DivExpr, ModExpr,
-        EqExpr, NotEqExpr, LessExpr, GreaterExpr, AndExpr, OrExpr,
-        NormalAssign, AddAssign, SubAssign, MulAssign, DivAssign, ModAssign,
-        ArrayAccess, CastExpr, CallExpr, UnaryExpr
-      > data;
+    struct IntLit {
+      int64_t value;
+    };
+    struct FloatLit {
+      double value;
+    };
+    struct StrLit {
+      std::string value;
+    };
+    struct CharLit {
+      char value;
+    };
+    struct BoolLit {
+      bool value;
+    };
+    struct VarRef {
+      std::string name;
+    };
+    struct AddExpr {
+      Expr *left, *right;
+    };
+    struct SubExpr {
+      Expr *left, *right;
+    };
+    struct MulExpr {
+      Expr *left, *right;
+    };
+    struct DivExpr {
+      Expr *left, *right;
+    };
+    struct ModExpr {
+      Expr *left, *right;
+    };
+    struct EqExpr {
+      Expr *left, *right;
+    };
+    struct NotEqExpr {
+      Expr *left, *right;
+    };
+    struct LessExpr {
+      Expr *left, *right;
+    };
+    struct GreaterExpr {
+      Expr *left, *right;
+    };
+    struct AndExpr {
+      Expr *left, *right;
+    };
+    struct OrExpr {
+      Expr *left, *right;
+    };
+    struct NormalAssign {
+      Expr* target;
+      Expr* value;
+    };
+    struct AddAssign {
+      Expr* target;
+      Expr* value;
+    };
+    struct SubAssign {
+      Expr* target;
+      Expr* value;
+    };
+    struct MulAssign {
+      Expr* target;
+      Expr* value;
+    };
+    struct DivAssign {
+      Expr* target;
+      Expr* value;
+    };
+    struct ModAssign {
+      Expr* target;
+      Expr* value;
     };
 
-    struct Block { std::vector<Stmt*> body; };
+    struct ArrayAccess {
+      Expr* array;
+      Expr* index;
+      bool is_at;
+    };
+    struct CastExpr {
+      Expr* expr;
+      TypeNode* to;
+      bool unsafe;
+    };
+    struct CallExpr {
+      std::string name;
+      std::vector<Expr*> args;
+    };
+    struct UnaryExpr {
+      Token op;
+      Expr* operand;
+    };
+    struct TernaryExpr {
+      Expr* cond;
+      Expr* then_e;
+      Expr* else_e;
+    };
+    struct Expr {
+      std::variant<
+          IntLit*, FloatLit*, StrLit*, CharLit*, BoolLit*, VarRef*, AddExpr*, SubExpr*, MulExpr*, DivExpr*, ModExpr*, EqExpr*, NotEqExpr*, LessExpr*,
+          GreaterExpr*, AndExpr*, OrExpr*, NormalAssign*, AddAssign*, SubAssign*, MulAssign*, DivAssign*, ModAssign*, ArrayAccess*, CastExpr*,
+          CallExpr*, UnaryExpr*, TernaryExpr*>
+          data;
+    };
+
+    struct Block {
+      std::vector<Stmt*> body;
+    };
 
     struct VarDecl {
       std::string name;
@@ -84,20 +152,38 @@ namespace beryl::be1 {
       std::vector<CondBlock> else_if_bs;
       std::optional<Block*> else_b;
     };
-    struct TernaryExpr { Expr* cond; Expr* then_e; Expr* else_e; };
-    struct WhileLoop { Expr* cond; Block* body; bool is_do; };
-    struct ForLoop { std::variant<VarDecl*, Expr*> init; Expr* cond; Expr* step; Block* body; };
-    struct ForEach { std::string var; Expr* container; Block* body; };
-    struct RepeatLoop { Expr* count; Block* body; };
-    struct WaitStmt { Expr* cond; };
-    struct ExitStmt { Expr* code; };
-    struct ReturnStmt { std::optional<Expr*> val; };
+    struct WhileLoop {
+      Expr* cond;
+      Block* body;
+      bool is_do;
+    };
+    struct ForLoop {
+      std::variant<VarDecl*, Expr*> init;
+      Expr* cond;
+      Expr* step;
+      Block* body;
+    };
+    struct ForEach {
+      std::string var;
+      Expr* container;
+      Block* body;
+    };
+    struct RepeatLoop {
+      Expr* count;
+      Block* body;
+    };
+    struct WaitStmt {
+      Expr* cond;
+    };
+    struct ExitStmt {
+      Expr* code;
+    };
+    struct ReturnStmt {
+      std::optional<Expr*> val;
+    };
 
     struct Stmt {
-      std::variant<
-        VarDecl, IfStmt, TernaryExpr, WhileLoop, ForLoop, ForEach,
-        RepeatLoop, WaitStmt, ExitStmt, ReturnStmt, Block, Expr*
-      > data;
+      std::variant<VarDecl*, IfStmt*, WhileLoop*, ForLoop*, ForEach*, RepeatLoop*, WaitStmt*, ExitStmt*, ReturnStmt*, Block*, Expr*> data;
     };
 
     struct Parameter {
@@ -113,9 +199,15 @@ namespace beryl::be1 {
       Block* body;
     };
 
+    struct ClassDecl {
+      std::string name;
+      std::vector<VarDecl> properties;
+      std::vector<FunctionDecl> methods;
+    };
+
     struct NamespaceDecl {
       std::string name;
-      std::vector<std::variant<FunctionDecl*, VarDecl*, NamespaceDecl*>> members;
+      std::vector<std::variant<FunctionDecl*, VarDecl*, NamespaceDecl*, ClassDecl*>> members;
     };
 
     struct ImportDecl {
@@ -124,9 +216,10 @@ namespace beryl::be1 {
     };
 
     struct Program {
-      std::vector<std::variant<FunctionDecl, VarDecl, NamespaceDecl, ImportDecl>> body;
+      std::vector<std::variant<FunctionDecl*, VarDecl*, NamespaceDecl*, ImportDecl*>> body;
     };
-  }
+  } // namespace ast
 
   ast::Program* parse(TokenStream& tokens, Arena& arena);
-}
+  void write_ast_to_gv_file(const ast::Program* const prog, std::string_view path);
+} // namespace beryl::be1
