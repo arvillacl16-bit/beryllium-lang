@@ -108,11 +108,6 @@ namespace beryl {
         }
 
         be1::TokenStream tokens = beryl::be1::lex(buf, path.string());
-        for (const auto& token : tokens) {
-          std::cout << token.to_string() << " at line " << token.line << ", col " << token.col
-                    << "\n";
-        }
-
         be1::ast::Program* program = beryl::be1::parse(tokens, alloc);
       }
     }
