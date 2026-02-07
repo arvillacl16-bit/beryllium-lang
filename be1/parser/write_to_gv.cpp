@@ -5,6 +5,7 @@ just debugging */
 #include <fstream>
 #include <string>
 #include <variant>
+#include <cstdint>
 
 namespace beryl::be1 {
   namespace {

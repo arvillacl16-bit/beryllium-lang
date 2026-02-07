@@ -21,6 +21,22 @@ package_versions = {
     "stdlib": ["1.0.0"],
 }
 
+help_text = """
+-------- Mineral Oil --------
+- Beryllium Package Manager -
+-----------------------------
+Usage: minoil [command] [options]
+Usage: mineraloil [command] [options]
+
+Commands:
+install [package[@version]]   Install a package (latest version if not specified)
+    --force                   Installs package with force, may corrupt packages, (use caustiosly)
+uninstall [package[@version]] Uninstall a package (all versions if not specified)
+    --force                   Uninstalls a package with force, may corrupt packages, (use caustiosly)
+list                          List installed packages
+help                          Show this help message
+"""
+
 
 # bervenv directory
 BERVENV_DIR = "__bervenv__"
@@ -77,24 +93,38 @@ def parse_package_arg(arg):
 
 def install_package(name, version):
     r = requests.get(
-        "https://pentagonx.github.io/beryllium-packages/" + name + "/files.txt")
+        "https://pentagonx.github.io/beryllium-packages/" + name + "/modules.txt")
     response = r.text
-
+    if r.status_code != 200:
+        print(f"Error: Failed to fetch package '{name}'. Package doesn't exist! [ERR: PACKAGE_NOT_FOUND]")
+        return
     modules = response.splitlines()
     for element in modules:
-        if len(element.strip()) > 51:
-            print(
-                f"Warning: Invalid module name found. Can be ignored. [ERR: LONG_MODULE_NAME]")
-            if name == element.strip():
-                print("Failure: Package is invalid due to module name being too long. Aborting installation. Please raise this to the package managers.")
-                return
-            else:
-                pass
-    package_dir = os.path.join(SYSPACKS, name)
-    os.makedirs(package_dir, exist_ok=True)
-    for module in modules:
-        module_dir = os.path.join(package_dir, module)
-        os.makedirs(module_dir, exist_ok=True)
+        last_char = element[-1]
+        if last_char == "/":
+            print("Creating Directory: " + element[:-1])
+            os.makedirs(element[:-1], exist_ok=True)
+            package_dir = os.path.join(SYSPACKS, name)
+        elif last_char == ";":
+            file_info = element[:-1]
+            file_path = file_info[0]
+            file_size = int(file_info[1]) if len(file_info) > 1 else None
+            print("Downloading File: " + file_path)
+            file_url = f"https://pentagonx.github.io/beryllium-packages/{name}/{file_path}"
+            file_response = requests.get(file_url)
+            if file_response.status_code != 200:
+                print(
+                    f"Error: Failed to download file '{file_path}' for package '{name}'. [ERR: FILE_NOT_FOUND]")
+                continue
+            file_data = file_response.content
+            if file_size and len(file_data) != file_size:
+                print(
+                    f"Error: File size mismatch for '{file_path}'. Expected {file_size} bytes, got {len(file_data)} bytes. [ERR: FILE_SIZE_MISMATCH]")
+                continue
+            full_file_path = os.path.join(SYSPACKS, name, file_path)
+            os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
+            with open(full_file_path, "wb") as f:
+                f.write(file_data)
 
     print("Downloaded package modules.")
 
@@ -103,8 +133,7 @@ def main():
     argc = len(sys.argv)
     argv = sys.argv
     if argc <= 1:
-        print("Usage: minoil [command] [options]")
-        print("Run 'minoil help' for more information.")
+        print(help_text)
         return
 
     command = argv[1].lower()
@@ -125,11 +154,6 @@ def main():
             return
         package_arg = argv[2]
         name, version = parse_package_arg(package_arg)
-
-        if name not in packages:
-            print(
-                f"Error: Package '{name}' not found from packages: {packages}.")
-            return
 
         # default to latest version if not specified
         if not version:
@@ -201,21 +225,15 @@ def main():
                 print(f"- {pkg}")
 
     elif command == "help":
-        print("""
--------- Mineral Oil --------
-- Beryllium Package Manager -
------------------------------
-Usage: minoil [command] [options]
-Usage: mineraloil [command] [options]
-Commands:
-    install [package[@version]]   Install a package (latest version if not specified)
-    uninstall [package[@version]] Uninstall a package (all versions if not specified)
-    list                          List installed packages
-    help                          Show this help message
-""")
+        print(help_text)
     else:
-        print(f"Error: Command '{command}' not found or missing arguments.")
+        print(f"Error: Command '{command}' not found or missing arguments. ")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nError: Operation cancelled by user. [ERR: CANCELLED]")
+    except Exception as e:
+        print(f"Error: {e} [ERR: UNKOWN_ERROR]")
