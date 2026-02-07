@@ -77,30 +77,28 @@ namespace beryl::be1 {
       Expr *left, *right;
     };
     struct NormalAssign {
-      Expr* target;
-      Expr* value;
-    };
-    struct AddAssign {
-      Expr* target;
-      Expr* value;
-    };
-    struct SubAssign {
-      Expr* target;
-      Expr* value;
-    };
-    struct MulAssign {
-      Expr* target;
-      Expr* value;
-    };
-    struct DivAssign {
-      Expr* target;
-      Expr* value;
-    };
-    struct ModAssign {
-      Expr* target;
-      Expr* value;
+      Expr *left, *right;
     };
 
+    struct AddAssign {
+      Expr *left, *right;
+    };
+
+    struct SubAssign {
+      Expr *left, *right;
+    };
+
+    struct MulAssign {
+      Expr *left, *right;
+    };
+
+    struct DivAssign {
+      Expr *left, *right;
+    };
+
+    struct ModAssign {
+      Expr *left, *right;
+    };
     struct ArrayAccess {
       Expr* array;
       Expr* index;
@@ -126,9 +124,10 @@ namespace beryl::be1 {
     };
     struct Expr {
       std::variant<
-          IntLit*, FloatLit*, StrLit*, CharLit*, BoolLit*, VarRef*, AddExpr*, SubExpr*, MulExpr*, DivExpr*, ModExpr*, EqExpr*, NotEqExpr*, LessExpr*,
-          GreaterExpr*, AndExpr*, OrExpr*, NormalAssign*, AddAssign*, SubAssign*, MulAssign*, DivAssign*, ModAssign*, ArrayAccess*, CastExpr*,
-          CallExpr*, UnaryExpr*, TernaryExpr*>
+          IntLit*, FloatLit*, StrLit*, CharLit*, BoolLit*, VarRef*, AddExpr*, SubExpr*, MulExpr*,
+          DivExpr*, ModExpr*, EqExpr*, NotEqExpr*, LessExpr*, GreaterExpr*, AndExpr*, OrExpr*,
+          NormalAssign*, AddAssign*, SubAssign*, MulAssign*, DivAssign*, ModAssign*, ArrayAccess*,
+          CastExpr*, CallExpr*, UnaryExpr*, TernaryExpr*>
           data;
     };
 
@@ -183,7 +182,10 @@ namespace beryl::be1 {
     };
 
     struct Stmt {
-      std::variant<VarDecl*, IfStmt*, WhileLoop*, ForLoop*, ForEach*, RepeatLoop*, WaitStmt*, ExitStmt*, ReturnStmt*, Block*, Expr*> data;
+      std::variant<
+          VarDecl*, IfStmt*, WhileLoop*, ForLoop*, ForEach*, RepeatLoop*, WaitStmt*, ExitStmt*,
+          ReturnStmt*, Block*, Expr*>
+          data;
     };
 
     struct Parameter {
