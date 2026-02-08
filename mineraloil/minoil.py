@@ -96,7 +96,8 @@ def install_package(name, version):
         "https://pentagonx.github.io/beryllium-packages/" + name + "/modules.txt")
     response = r.text
     if r.status_code != 200:
-        print(f"Error: Failed to fetch package '{name}'. Package doesn't exist! [ERR: PACKAGE_NOT_FOUND]")
+        print(
+            f"Error: Failed to fetch package '{name}'. Package doesn't exist! [ERR: PACKAGE_NOT_FOUND]")
         return
     modules = response.splitlines()
     for element in modules:
