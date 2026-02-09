@@ -2,17 +2,17 @@
 just debugging */
 
 #include "parse.hpp"
+#include <cstdint>
 #include <fstream>
 #include <string>
 #include <variant>
-#include <cstdint>
 
 namespace beryl::be1 {
   namespace {
-    template <class... Ts> struct overloaded : Ts... {
+    template <class... Ts> struct Overloaded : Ts... {
       using Ts::operator()...;
     };
-    template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+    template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
 
     inline std::string id(const void* ptr) {
       return "n" + std::to_string(reinterpret_cast<uintptr_t>(ptr));
@@ -52,7 +52,7 @@ namespace beryl::be1 {
       if (!type) return;
       std::string node_id = id(type);
       std::string name = std::visit(
-          overloaded{
+          Overloaded{
               [](const std::string& s) { return s; },
               [](ast::GenericType* g) { return g->base_name + "<...>"; }},
           type->specifier);
@@ -66,7 +66,7 @@ namespace beryl::be1 {
     void visit_expr(std::ofstream& out, const ast::Expr* expr) {
       if (!expr) return;
       std::visit(
-          overloaded{
+          Overloaded{
               [&](ast::IntLit* l) {
                 out << "  " << id(l) << " [label=\"" << l->value << "\", shape=ellipse];\n";
               },
@@ -140,7 +140,7 @@ namespace beryl::be1 {
     void visit_stmt(std::ofstream& out, const ast::Stmt* stmt) {
       if (!stmt) return;
       std::visit(
-          overloaded{
+          Overloaded{
               [&](ast::VarDecl* d) {
                 out << "  " << id(d) << " [label=\"Decl: " << d->name << "\", shape=rect];\n";
                 if (d->type) visit_type(out, d->type.value(), id(d), "type");
@@ -237,7 +237,7 @@ namespace beryl::be1 {
     out << "digraph BerylliumAST {\n  rankdir=TB;\n  node [fontname=\"Courier\", fontsize=10];\n";
     for (auto el : prog->body) {
       std::visit(
-          overloaded{
+          Overloaded{
               [&](ast::FunctionDecl* f) {
                 out << "  " << id(f) << " [label=\"Fn: " << f->name
                     << "\", shape=invhouse, color=blue, style=bold];\n";
