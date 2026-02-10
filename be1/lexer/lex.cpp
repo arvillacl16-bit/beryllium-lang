@@ -46,6 +46,7 @@ namespace beryl::be1 {
       {"result", Token::RESULT},
       {"tup", Token::TUP},
       {"opt", Token::OPT},
+      {"variant", Token::VARIANT},
       {"unic", Token::UNIC},
       {"typeof", Token::TYPEOF},
       {"valat", Token::VALAT},
@@ -55,9 +56,10 @@ namespace beryl::be1 {
       {"from", Token::FROM},
       {"true", Token::TRUE},
       {"false", Token::FALSE},
-      {"nullptr", Token::NULLPTR},
+      {"nil", Token::NULLPTR},
       {"else", Token::ELSE},
-      {"trait", Token::TRAIT}};
+      {"trait", Token::TRAIT},
+      {"publish", Token::PUBLISH}};
 
   static const std::unordered_map<char, TokenType> SYMBOLS = {
       {';', Token::SEMI},          {'(', Token::OPEN_PAREN},  {'[', Token::OPEN_BRACKET},
@@ -258,7 +260,7 @@ namespace beryl::be1 {
       }
 
       // Number literals
-      if ((peek() == '-' && std::isdigit(peek(1))) || std::isdigit(peek())) {
+      if (std::isdigit(peek(1)) || std::isdigit(peek())) {
         Token tok;
         tok.line = line;
         tok.col = col;

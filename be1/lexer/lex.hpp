@@ -76,6 +76,7 @@ namespace beryl::be1 {
       RESULT,
       TUP,
       OPT,
+      VARIANT,
       UNIC,
       TYPEOF,
       VALAT,
@@ -105,7 +106,8 @@ namespace beryl::be1 {
       FRIEND,
       TYPE,
       TRAIT,
-      COMB
+      COMB,
+      PUBLISH
     } type;
 
     std::string metadata;
@@ -191,6 +193,7 @@ namespace beryl::be1 {
       case RESULT: return "RESULT";
       case TUP: return "TUP";
       case OPT: return "OPT";
+      case VARIANT: return "VARIANT";
       case UNIC: return "UNIC";
       case TYPEOF: return "TYPEOF";
       case VALAT: return "VALAT";
@@ -208,7 +211,7 @@ namespace beryl::be1 {
       case FROM: return "FROM";
       case TRUE: return "TRUE";
       case FALSE: return "FALSE";
-      case NULLPTR: return "NULLPTR";
+      case NULLPTR: return "NIL";
       case CLASS: return "CLASS";
       case PUBLIC: return "PUBLIC";
       case PRIVATE: return "PRIVATE";
@@ -216,6 +219,7 @@ namespace beryl::be1 {
       case TYPE: return "TYPE";
       case TRAIT: return "TRAIT";
       case COMB: return "COMB";
+      case PUBLISH: return "PUBLISH";
       case EOF_TOKEN: return "EOF_TOKEN";
       default: return "INVALID_TOKEN";
       }
