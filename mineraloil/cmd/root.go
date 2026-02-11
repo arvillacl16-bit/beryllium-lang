@@ -11,7 +11,7 @@ var rootCmd = &cobra.Command{
 	Use:   "minoil/mineraloil [subcommand] [args and flags]",
 	Short: "A package manager tightly integrated with Beryl",
 	Long: `A package manager tightly integrated with Beryl.
-	It supports dependency management.`,
+It supports dependency management.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },

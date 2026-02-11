@@ -15,6 +15,7 @@ compile_commands.json
 macOS-homebrew-clang/.cache/clangd/index
 /.venv
 /testing
+mineraloil/build_minoil.sh
 
 
 # pentagon
