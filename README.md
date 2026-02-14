@@ -7,6 +7,7 @@ This is a hobby programming language. It is WIP.
 For the compiler:
 
 - C++20
+- LLVM API
 - Make
 
 For the package manager:
