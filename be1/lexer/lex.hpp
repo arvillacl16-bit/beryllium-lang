@@ -107,7 +107,8 @@ namespace beryl::be1 {
       TYPE,
       TRAIT,
       COMB,
-      PUBLISH
+      PUBLISH,
+      ENUM
     } type;
 
     std::string metadata;
@@ -220,6 +221,7 @@ namespace beryl::be1 {
       case TRAIT: return "TRAIT";
       case COMB: return "COMB";
       case PUBLISH: return "PUBLISH";
+      case ENUM: return "ENUM";
       case EOF_TOKEN: return "EOF_TOKEN";
       default: return "INVALID_TOKEN";
       }

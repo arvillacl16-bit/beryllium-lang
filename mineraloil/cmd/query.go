@@ -1,3 +1,7 @@
+/*
+The obvious comments are from the cobra-cli tool which generated scaffolding, not an AI
+*/
+
 package cmd
 
 import (

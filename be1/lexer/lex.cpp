@@ -59,7 +59,8 @@ namespace beryl::be1 {
       {"nil", Token::NULLPTR},
       {"else", Token::ELSE},
       {"trait", Token::TRAIT},
-      {"publish", Token::PUBLISH}};
+      {"publish", Token::PUBLISH},
+      {"enum", Token::ENUM}};
 
   static const std::unordered_map<char, TokenType> SYMBOLS = {
       {';', Token::SEMI},          {'(', Token::OPEN_PAREN},  {'[', Token::OPEN_BRACKET},
