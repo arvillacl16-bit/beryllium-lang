@@ -1,11 +1,12 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace beryl::be1 {
   struct Token {
-    enum {
+    enum : uint8_t {
       SEMI,
       INT_LIT,
       FLOAT_LIT,
@@ -115,9 +116,7 @@ namespace beryl::be1 {
     int line;
     int col;
 
-    bool operator==(const Token& other) const {
-      return type == other.type && metadata == other.metadata;
-    }
+    bool operator==(const Token& other) const { return operator==(other); }
     bool operator!=(const Token& other) const { return !(*this == other); }
     bool operator==(decltype(Token::VAR) t) const { return type == t; }
     bool operator!=(decltype(Token::VAR) t) const { return type != t; }
@@ -278,9 +277,7 @@ namespace beryl::be1 {
         return *this;
       }
 
-      bool operator==(const Iterator& other) const {
-        return other.data == data && other.cursor == cursor;
-      }
+      bool operator==(const Iterator& other) const { return other.data == data && other.cursor == cursor; }
       bool operator!=(const Iterator& other) const { return !operator==(other); }
 
       friend TokenStream;

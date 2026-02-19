@@ -2,7 +2,7 @@ Language: Cpp
 IndentWidth: 2
 ColumnLimit: 150
 AllowShortBlocksOnASingleLine: Never
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: OnlyFirstIf
 AllowShortLoopsOnASingleLine: true
 AlignAfterOpenBracket: AlwaysBreak

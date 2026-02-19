@@ -28,6 +28,14 @@ namespace beryl::be1 {
     void import_visitor(const ast::ImportDecl* const import, std::ostringstream& out) {
       //
     }
+
+    void trait_visitor(const ast::TraitDecl* const trait, std::ostringstream& out) {
+      //
+    }
+
+    void enum_visitor(const ast::EnumDecl* const enum_, std::ostringstream& out) {
+      //
+    }
   } // namespace
 
   std::string ast_to_biir(const ast::Program* const prog) {
@@ -35,11 +43,12 @@ namespace beryl::be1 {
     for (auto el : prog->body) {
       std::visit(
           Overloaded{
-              [&](const ast::ClassDecl* const class_) { class_visitor(class_, out); },
-              [&](const ast::VarDecl* const var) { var_visitor(var, out); },
+              [&](const ast::ClassDecl* const class_) { class_visitor(class_, out); }, [&](const ast::VarDecl* const var) { var_visitor(var, out); },
               [&](const ast::FunctionDecl* const func) { func_visitor(func, out); },
               [&](const ast::NamespaceDecl* const nsp) { nsp_visitor(nsp, out); },
-              [&](const ast::ImportDecl* const import) { import_visitor(import, out); }},
+              [&](const ast::ImportDecl* const import) { import_visitor(import, out); },
+              [&](const ast::TraitDecl* const trait) { trait_visitor(trait, out); },
+              [&](const ast::EnumDecl* const enum_) { enum_visitor(enum_, out); }},
           el);
     }
     return out.str();

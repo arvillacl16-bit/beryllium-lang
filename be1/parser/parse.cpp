@@ -63,7 +63,7 @@ namespace beryl::be1 {
     ast::Program* tree = arena.alloc<ast::Program>();
     while (tokens.has_next() && tokens.peek().type != Token::EOF_TOKEN) {
       if (tokens.peek() == Token::CLASS) tree->body.emplace_back(construct_class(tokens, arena));
-      else if (tokens.peek() == Token::FUNC || (tokens.peek() == Token::PUBLISH && tokens.peek() == Token::FUNC))
+      else if (tokens.peek() == Token::FUNC || (tokens.peek() == Token::PUBLISH && tokens.peek(1) == Token::FUNC))
         tree->body.emplace_back(construct_func(tokens, arena));
       else if (tokens.peek() == Token::NMSP)
         tree->body.emplace_back(construct_nsp(tokens, arena));
@@ -74,10 +74,9 @@ namespace beryl::be1 {
       else if (tokens.peek() == Token::ENUM)
         tree->body.emplace_back(construct_enum(tokens, arena));
       else if (tokens.peek() == Token::TRAIT)
-        tree->body.emplace_back(construct_enum(tokens, arena));
+        tree->body.emplace_back(construct_trait(tokens, arena));
       else
         beryl::throw_lex_error("Unknown global-level declaration", tokens.peek().line, tokens.peek().col);
-      tokens.advance();
       continue;
     }
     return tree;
