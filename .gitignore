@@ -15,7 +15,7 @@ compile_commands.json
 macOS-homebrew-clang/.cache/clangd/index
 /.venv
 /testing
-
+pxt/
 
 # pentagon
 /pentagon-tests/
