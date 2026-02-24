@@ -1,24 +1,12 @@
 .clangd
 /.vscode
 /.cache
-*.o
 
-# object files in start directory
-!/start/
-!start/macOS-arm.o
-!start/macOS-x86_64.o
-!start/linux-arm.o
-!start/linux-x86_64.o
-*.a
 *.pyc
-macOS-homebrew-clang/.cache/clangd/index
 /.venv
 /testing
 /builddir
 mineraloil/build_minoil.sh
 
-
 # pentagon
-/pentagon-tests/
-/pentagon-tests/*
 pentagon-tests/
