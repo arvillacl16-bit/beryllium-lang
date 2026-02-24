@@ -67,7 +67,7 @@ namespace beryl::be1 {
       {'{', Token::OPEN_CURLY}, {'}', Token::CLOSE_CURLY}, {':', Token::COLON},        {',', Token::COMMA},         {'+', Token::PLUS},
       {'-', Token::MINUS},      {'*', Token::ASTER},       {'/', Token::FORW_SLASH},   {'\\', Token::BACK_SLASH},   {'%', Token::MOD},
       {'<', Token::LESS},       {'>', Token::GREATER},     {'=', Token::ASSIGN},       {'!', Token::NOT},           {'.', Token::DOT},
-      {'|', Token::COMB}};
+      {'|', Token::COMB},       {'&', Token::MAKE_REF}};
 
   static const std::unordered_map<std::string_view, TokenType> DOUBLE_SYMBOLS = {
       {"&&", Token::AND},           {"||", Token::OR},      {"==", Token::EQ},        {"!=", Token::NOT_EQ},

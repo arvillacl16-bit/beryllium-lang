@@ -27,6 +27,7 @@ cd BerylliumLang
 Compiler:
 
 ```sh
+cd compiler
 meson setup builddir
 meson compile -C builddir
 ```

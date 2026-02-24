@@ -1,5 +1,6 @@
 .clangd
 /.vscode
+/.cache
 *.o
 
 # object files in start directory

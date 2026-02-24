@@ -109,7 +109,8 @@ namespace beryl::be1 {
       TRAIT,
       COMB,
       PUBLISH,
-      ENUM
+      ENUM,
+      MAKE_REF
     } type;
 
     std::string metadata;
