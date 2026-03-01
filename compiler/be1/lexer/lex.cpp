@@ -101,7 +101,6 @@ namespace beryl::be1 {
       return buf[cursor + offset];
     };
 
-    size_t past_cursor = cursor;
     while (cursor < buf.length()) {
       // skips whitespace
       if (is_space(peek())) {
@@ -331,8 +330,6 @@ namespace beryl::be1 {
       if (matched_symbol) {
         continue;
       }
-
-      past_cursor = cursor;
     }
     tokens.push_back(Token{.type = Token::EOF_TOKEN, .line = line, .col = col});
     return TokenStream(tokens);
