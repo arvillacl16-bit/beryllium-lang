@@ -9,4 +9,5 @@ namespace beryl {
   void throw_lex_warning(std::string_view msg, int line_num, int col_num);
   void throw_arg_read_error(std::string_view msg);
   void throw_arg_read_warning(std::string_view args);
+  void log(std::string_view msg);
 } // namespace beryl
