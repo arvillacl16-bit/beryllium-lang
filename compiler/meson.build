@@ -1,5 +1,3 @@
-# Mostly AI Generated because I could not bother thinking about building
-
 project('Beryl', ['cpp', 'c'], 
   version : '1.0.0', 
   default_options : ['cpp_std=c++20']
@@ -9,6 +7,7 @@ project('Beryl', ['cpp', 'c'],
 dep_zstd = dependency('libzstd')
 dep_zlib = dependency('zlib')
 dep_xml2 = dependency('libxml-2.0')
+dep_gtest = dependency('gtest', fallback : ['gtest', 'dep_gtest'])
 
 # 2. LLVM
 llvm_dep = dependency('llvm', 
@@ -51,7 +50,6 @@ if host_machine.system() == 'darwin'
 endif
 
 source_files = [
-  'beryl.cpp',
   'struct-opt/struct_opt.cpp',
   'clparser/build.cpp',
   'clparser/print.cpp',
@@ -64,8 +62,21 @@ source_files = [
   'utils/parse_json_params.cpp'
 ]
 
+test_files = ['../tests/struct-opt-tests/test1.cpp']
+
+struct_opt_1 = executable('struct_opt_1', 
+  test_files + source_files, 
+  dependencies : [dep_zstd, dep_zlib, dep_xml2, llvm_dep, dep_gtest],
+  cpp_args : relevant_cxxflags,
+  link_args : extra_link_args,
+  build_rpath : build_rpath_dirs.length() > 0 ? ':'.join(build_rpath_dirs) : '',
+  install : false
+)
+
+test('struct_size_reduction_test1', struct_opt_1)
+
 executable('beryl', 
-  sources : source_files, 
+  sources : source_files + 'beryl.cpp', 
   dependencies : [dep_zstd, dep_zlib, dep_xml2, llvm_dep],
   cpp_args : relevant_cxxflags, 
   link_args : extra_link_args,
