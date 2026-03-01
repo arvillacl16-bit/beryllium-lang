@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 namespace beryl {
   struct CompileArgs {
@@ -30,13 +31,23 @@ namespace beryl {
     bool operator>=(Version other) const { return !operator<(other); }
   };
 
-  enum class OptLevel { NONE, ONE, TWO, THREE };
+  enum class OptLevel : unsigned char { NONE, ONE, TWO, THREE };
 
-  void create_venv(CompileArgs args);
-  void destroy_venv(CompileArgs args);
+  struct BuildArgs {
+    bool link = true;
+    bool force_module_recompile = false;
+    OptLevel opt_level = OptLevel::NONE;
+    std::vector<std::string> filepath_prefixes;
+    std::vector<std::string> input_files;
+    std::string output_path;
+    Version std_ver;
+  };
+
+  void create_venv(bool install_stdlib = true);
+  void destroy_venv(bool force = false);
   bool ask();
-  void build(CompileArgs args);
+  void build(BuildArgs args);
   void help();
   void version();
   void run(int argc, char** argv);
-}
+} // namespace beryl

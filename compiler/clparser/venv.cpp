@@ -10,11 +10,7 @@ namespace beryl {
     return fs::exists(path) && fs::is_directory(path);
   }
 
-  void create_venv(CompileArgs args) {
-    bool install_stdlib = true;
-    if (args.argc > 2 && std::string(args.argv[2]) == "--no-stdlib") {
-      install_stdlib = false;
-    }
+  void create_venv(bool install_stdlib) {
     if (directory_exists("__bervenv__"))
       beryl::throw_arg_read_error(
           "__bervenv__ folder already exists. Please "
@@ -28,14 +24,10 @@ namespace beryl {
     }
   }
 
-  void destroy_venv(CompileArgs args) {
+  void destroy_venv(bool force) {
     if (!directory_exists("__bervenv__")) beryl::throw_arg_read_error("Bervenv does not exist to remove");
     std::error_code ec;
-    bool do_rem = false;
-    if (args.argc > 2) {
-      if (std::string(args.argv[2]) == "--force") do_rem = true;
-    } else
-      do_rem = ask();
+    bool do_rem = force || ask();
     if (do_rem) {
       std::uintmax_t count = fs::remove_all("__bervenv__", ec);
       if (count == static_cast<std::uintmax_t>(-1) || ec.value() != 0) beryl::throw_arg_read_error("Failed to destroy venv: " + ec.message());

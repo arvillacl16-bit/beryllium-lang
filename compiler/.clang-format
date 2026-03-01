@@ -3,7 +3,7 @@ IndentWidth: 2
 ColumnLimit: 150
 AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: InlineOnly
-AllowShortIfStatementsOnASingleLine: OnlyFirstIf
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
 AlignAfterOpenBracket: AlwaysBreak
 AllowShortCaseLabelsOnASingleLine: true

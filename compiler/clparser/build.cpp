@@ -16,73 +16,20 @@
 namespace fs = std::filesystem;
 
 namespace beryl {
-  static bool directory_exists(const fs::path& path) {
-    return fs::exists(path) && fs::is_directory(path);
-  }
-
-  void build(CompileArgs args) {
+  void build(BuildArgs args) {
     beryl::Arena alloc(128 * 1024 * 1024);
-    if (!directory_exists("__bervenv__")) {
-      std::cerr << "Bervenv does not exist. Would you like to create it? Y/n: ";
-      char c;
-      std::cin >> c;
-      if (c == 'Y' || c == 'y') {
-        create_venv(args);
-      } else
-        beryl::fail();
-    }
-    std::vector<fs::path> paths_to_by_file;
-    std::vector<std::string> includes;
-    std::optional<fs::path> exec{};
-    Version ver{.major = 1, .minor = 0};
-    bool link = true;
-    bool force_module_recompile = false;
-    OptLevel opt_level = OptLevel::NONE;
-
-    for (size_t i = 2; i < args.argc; ++i) {
-      std::string arg = args.argv[i];
-      if (fs::path(arg).extension() == ".by") paths_to_by_file.emplace_back(arg);
-      else if (arg == "--no-link")
-        link = false;
-      else if (arg == "--force-module-recompile")
-        force_module_recompile = true;
-      else if (arg == "-O0")
-        opt_level = OptLevel::NONE;
-      else if (arg == "-O1")
-        opt_level = OptLevel::ONE;
-      else if (arg == "-O2")
-        opt_level = OptLevel::TWO;
-      else if (arg == "-O3")
-        opt_level = OptLevel::THREE;
-      else if (arg.rfind("-includes=", 0) == 0)
-        includes = beryl::get_includes(arg.substr(10));
-      else if (arg == "-o") {
-        if (i == args.argc - 1) throw_arg_read_error("-o needs a file name to specify output");
-        ++i; 
-        exec = args.argv[i];
-      } else if (arg.rfind("-std=", 0) == 0) {
-        std::string verstr = arg.substr(5);
-        if (verstr == "be1") ver = {.major = 1, .minor = 0};
-        else
-          beryl::throw_arg_read_error("Unknown version: " + verstr);
-      } else
-        beryl::throw_arg_read_warning("Unknown compiler argument: " + arg);
-    }
-
-    if (paths_to_by_file.size() == 0) beryl::throw_arg_read_error("There is no .by file to compile");
-    if (paths_to_by_file.size() > 1 && exec.has_value()) beryl::throw_arg_read_error("Cannot redirect output for multiple files");
 
     llvm::LLVMContext context;
 
-    if (ver == Version{.major = 1, .minor = 0}) {
-      for (const std::filesystem::path& path : paths_to_by_file) {
+    if (args.std_ver == Version{.major = 1, .minor = 0}) {
+      for (const std::filesystem::path path : args.input_files) {
         llvm::Module mod("BerylliumModule", context);
         llvm::IRBuilder<> builder(context);
 
         std::string buf;
         if (!fs::exists(path)) {
           bool found = false;
-          for (const auto& prefix : includes) {
+          for (const auto& prefix : args.filepath_prefixes) {
             if (auto appended_path = prefix / path; fs::exists(appended_path)) {
               std::ifstream file(appended_path);
               if (file.is_open() && file.good()) {

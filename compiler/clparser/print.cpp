@@ -10,7 +10,7 @@ namespace beryl {
   }
 
   void version() {
-    std::cout << "Beryl 1.0.0" << std::endl;
+    std::cout << "Beryl 1.0.0" << '\n';
   }
 
   void help() {
