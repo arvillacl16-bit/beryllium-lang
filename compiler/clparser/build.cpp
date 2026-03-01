@@ -58,7 +58,7 @@ namespace beryl {
         includes = beryl::get_includes(arg.substr(10));
       else if (arg == "-o") {
         if (i == args.argc - 1) throw_arg_read_error("-o needs a file name to specify output");
-        ++i;
+        ++i; 
         exec = args.argv[i];
       } else if (arg.rfind("-std=", 0) == 0) {
         std::string verstr = arg.substr(5);
