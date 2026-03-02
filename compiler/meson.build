@@ -63,13 +63,16 @@ source_files = [
   'utils/parse_json_params.cpp'
 ]
 
+beryl_core = static_library('beryl-core', source_files, dependencies : [dep_zstd, dep_zlib, dep_xml2, llvm_dep])
+
 test_files = ['../tests/unit-tests/structopt1.cpp']
 
 struct_opt_1 = executable('struct_opt_1', 
   test_files + source_files, 
-  dependencies : [dep_zstd, dep_zlib, dep_xml2, llvm_dep, dep_gtest, dep_gtest_main],
+  dependencies : [dep_gtest, dep_gtest_main],
   cpp_args : relevant_cxxflags,
   link_args : extra_link_args,
+  link_with : beryl_core,
   build_rpath : build_rpath_dirs.length() > 0 ? ':'.join(build_rpath_dirs) : '',
   install : false
 )
@@ -77,10 +80,10 @@ struct_opt_1 = executable('struct_opt_1',
 test('struct_size_reduction_test1', struct_opt_1)
 
 executable('beryl', 
-  sources : source_files + 'beryl.cpp', 
-  dependencies : [dep_zstd, dep_zlib, dep_xml2, llvm_dep],
+  sources : source_files + 'beryl.cpp',
   cpp_args : relevant_cxxflags, 
   link_args : extra_link_args,
+  link_with : beryl_core,
   build_rpath : build_rpath_dirs.length() > 0 ? ':'.join(build_rpath_dirs) : '',
   install : true
 )
