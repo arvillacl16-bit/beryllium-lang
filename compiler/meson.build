@@ -62,7 +62,7 @@ source_files = [
   'utils/parse_json_params.cpp'
 ]
 
-test_files = ['../tests/struct-opt-tests/test1.cpp']
+test_files = ['../tests/unit-tests/structopt1.cpp']
 
 struct_opt_1 = executable('struct_opt_1', 
   test_files + source_files, 
