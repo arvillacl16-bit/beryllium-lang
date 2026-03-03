@@ -5,6 +5,7 @@
 *.pyc
 /.venv
 /testing
+subprojects/
 /builddir
 mineraloil/build_minoil.sh
 
