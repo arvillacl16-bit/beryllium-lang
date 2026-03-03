@@ -45,8 +45,8 @@ cd mineraloil
 go build -o mineraloil main.go
 ```
 
+The executable is at ./mineraloil.
+
 Runtime:
 
-The C file is at ./start/start.c. It is a single file that can be compiled directly with no issues.
-
-The executable is at ./mineraloil.
+The C file is at ./start/start.c. It is a single file that can be compiled directly with no issues. However, you do have to pass a flag to stop it from trying to link the file.

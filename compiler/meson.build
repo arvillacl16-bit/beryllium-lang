@@ -7,8 +7,8 @@ project('Beryl', ['cpp', 'c'],
 dep_zstd = dependency('libzstd')
 dep_zlib = dependency('zlib')
 dep_xml2 = dependency('libxml-2.0')
-dep_gtest = dependency('gtest', fallback : ['gtest', 'dep_gtest'])
-dep_gtest_main = dependency('gtest_main')
+dep_gtest = dependency('gtest', fallback : ['gtest', 'gtest_dep'])
+dep_gtest_main = dependency('gtest_main', fallback : ['gtest', 'gtest_main_dep'])
 
 # 2. LLVM
 llvm_dep = dependency('llvm', 
