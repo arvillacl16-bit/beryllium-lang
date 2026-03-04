@@ -32,11 +32,15 @@ Compiler:
 
 ```sh
 cd compiler
-meson setup builddir
+meson setup builddir --buildtype=release
 meson compile -C builddir
 ```
 
-The executable is at ./builddir/beryl
+The executable is at ./builddir/beryl. It does support install, so if you want to install, do:
+
+```sh
+meson install -C builddir
+```
 
 Package manager:
 

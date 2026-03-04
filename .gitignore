@@ -5,8 +5,8 @@
 *.pyc
 /.venv
 /testing
-subprojects/
-/builddir
+/build-debug
+/build-release
 mineraloil/build_minoil.sh
 
 # pentagon
