@@ -74,7 +74,7 @@ namespace beryl::be1 {
       WEAKPTR,
       UNSAFEPTR,
       REF,
-      RESULT,
+      RES,
       TUP,
       OPT,
       VARIANT,
@@ -191,7 +191,7 @@ namespace beryl::be1 {
       case WEAKPTR: return "WEAKPTR";
       case UNSAFEPTR: return "UNSAFEPTR";
       case REF: return "REF";
-      case RESULT: return "RESULT";
+      case RES: return "RES";
       case TUP: return "TUP";
       case OPT: return "OPT";
       case VARIANT: return "VARIANT";

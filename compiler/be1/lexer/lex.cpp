@@ -43,7 +43,7 @@ namespace beryl::be1 {
       {"weakptr", Token::WEAKPTR},
       {"unsafeptr", Token::UNSAFEPTR},
       {"ref", Token::REF},
-      {"result", Token::RESULT},
+      {"res", Token::RES},
       {"tup", Token::TUP},
       {"opt", Token::OPT},
       {"variant", Token::VARIANT},

@@ -8,6 +8,7 @@
 /build-debug
 /build-release
 mineraloil/build_minoil.sh
+compiler/compile_beryl.sh
 
 # pentagon
 pentagon-tests/
