@@ -3,6 +3,7 @@
 #include "utils/parse_json_params.hpp"
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <string_view>
 
 namespace fs = std::filesystem;
